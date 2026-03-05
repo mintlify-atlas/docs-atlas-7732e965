@@ -1,0 +1,100 @@
+{
+  "projectType": "saas",
+  "projectName": "HERCULES SGI",
+  "projectDescription": "A comprehensive Research Management System (Sistema de Gestión de Investigación) for Spanish universities, providing integrated management of research projects, grants, ethics reviews, intellectual property, and scientific production.",
+  "theme": "linden",
+  "primaryColor": "#2563eb",
+  "lightColor": "#3b82f6",
+  "darkColor": "#1d4ed8",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "quickstart",
+              "architecture"
+            ]
+          },
+          {
+            "group": "Core Modules",
+            "pages": [
+              "modules/csp",
+              "modules/eti",
+              "modules/pii",
+              "modules/prc",
+              "modules/eer"
+            ]
+          },
+          {
+            "group": "User Guides",
+            "pages": [
+              "guides/researcher",
+              "guides/administrator",
+              "guides/manager"
+            ]
+          },
+          {
+            "group": "Deployment",
+            "pages": [
+              "deployment/installation",
+              "deployment/configuration",
+              "deployment/authentication"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Services",
+            "pages": [
+              "api/csp-service",
+              "api/eti-service",
+              "api/pii-service",
+              "api/prc-service",
+              "api/rep-service",
+              "api/com-service"
+            ]
+          },
+          {
+            "group": "Authentication",
+            "pages": [
+              "api/authentication",
+              "api/authorization"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Multi-module research management system",
+    "Project and grant call management (CSP)",
+    "Ethics review and committee management (ETI)",
+    "Intellectual property management (PII)",
+    "Scientific production tracking (PRC)",
+    "Integrated reporting system",
+    "Keycloak-based authentication",
+    "Microservices architecture",
+    "Multi-language support (Spanish, English, Basque)",
+    "Role-based access control"
+  ],
+  "publicApiSurface": [
+    "CSP Service - Convocatorias (Calls), Solicitudes (Applications), Proyectos (Projects)",
+    "ETI Service - Comités (Committees), Memorias (Reports), Evaluaciones (Evaluations)",
+    "PII Service - Invenciones (Inventions), Solicitudes de Protección (Protection Requests)",
+    "PRC Service - Producción Científica (Scientific Production)",
+    "REP Service - Report Generation API",
+    "COM Service - Communications and Email Templates",
+    "CNF Service - Configuration Management",
+    "USR Service - User Management",
+    "TP Service - Scheduled Tasks",
+    "REL Service - Module Relations",
+    "EER Service - External Entity Relations"
+  ]
+}
