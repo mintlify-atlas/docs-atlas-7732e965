@@ -28,7 +28,7 @@ All endpoints require JWT authentication with PII-specific permissions:
 
 <CodeGroup>
 ```bash GET /invenciones
-curl -X GET "https://api.example.com/invenciones?q=activo==true" \
+curl -X GET "http://localhost:4280/invenciones?q=activo==true" \
   -H "Authorization: Bearer {token}"
 ```
 </CodeGroup>
@@ -61,7 +61,7 @@ Returns active inventions.
 
 <CodeGroup>
 ```bash GET /invenciones/todos
-curl -X GET "https://api.example.com/invenciones/todos" \
+curl -X GET "http://localhost:4280/invenciones/todos" \
   -H "Authorization: Bearer {token}"
 ```
 </CodeGroup>
@@ -72,7 +72,7 @@ curl -X GET "https://api.example.com/invenciones/todos" \
 
 <CodeGroup>
 ```bash GET /invenciones/{id}
-curl -X GET "https://api.example.com/invenciones/123" \
+curl -X GET "http://localhost:4280/invenciones/123" \
   -H "Authorization: Bearer {token}"
 ```
 </CodeGroup>
@@ -85,7 +85,7 @@ curl -X GET "https://api.example.com/invenciones/123" \
 
 <CodeGroup>
 ```bash POST /invenciones
-curl -X POST "https://api.example.com/invenciones" \
+curl -X POST "http://localhost:4280/invenciones" \
   -H "Authorization: Bearer {token}" \
   -H "Content-Type: application/json" \
   -d '{
@@ -103,7 +103,7 @@ curl -X POST "https://api.example.com/invenciones" \
 
 <CodeGroup>
 ```bash PUT /invenciones/{id}
-curl -X PUT "https://api.example.com/invenciones/123" \
+curl -X PUT "http://localhost:4280/invenciones/123" \
   -H "Authorization: Bearer {token}" \
   -H "Content-Type: application/json" \
   -d '{"titulo": "Updated Title"}'
@@ -118,7 +118,7 @@ curl -X PUT "https://api.example.com/invenciones/123" \
 
 <CodeGroup>
 ```bash GET /invenciones/{invencionId}/invencion-inventores
-curl -X GET "https://api.example.com/invenciones/123/invencion-inventores" \
+curl -X GET "http://localhost:4280/invenciones/123/invencion-inventores" \
   -H "Authorization: Bearer {token}"
 ```
 </CodeGroup>
@@ -139,7 +139,7 @@ Returns the list of inventors associated with the invention.
 
 <CodeGroup>
 ```bash GET /invenciones/{id}/sectoresaplicacion
-curl -X GET "https://api.example.com/invenciones/123/sectoresaplicacion" \
+curl -X GET "http://localhost:4280/invenciones/123/sectoresaplicacion" \
   -H "Authorization: Bearer {token}"
 ```
 </CodeGroup>
@@ -150,7 +150,7 @@ Returns application sectors for the invention.
 
 <CodeGroup>
 ```bash GET /invenciones/{id}/areasconocimiento
-curl -X GET "https://api.example.com/invenciones/123/areasconocimiento" \
+curl -X GET "http://localhost:4280/invenciones/123/areasconocimiento" \
   -H "Authorization: Bearer {token}"
 ```
 </CodeGroup>
@@ -159,7 +159,7 @@ curl -X GET "https://api.example.com/invenciones/123/areasconocimiento" \
 
 <CodeGroup>
 ```bash GET /invenciones/{id}/informespatentabilidad
-curl -X GET "https://api.example.com/invenciones/123/informespatentabilidad" \
+curl -X GET "http://localhost:4280/invenciones/123/informespatentabilidad" \
   -H "Authorization: Bearer {token}"
 ```
 </CodeGroup>
@@ -170,7 +170,7 @@ Returns patentability assessment reports.
 
 <CodeGroup>
 ```bash GET /invenciones/{invencionId}/gastos
-curl -X GET "https://api.example.com/invenciones/123/gastos" \
+curl -X GET "http://localhost:4280/invenciones/123/gastos" \
   -H "Authorization: Bearer {token}"
 ```
 </CodeGroup>
@@ -181,7 +181,7 @@ Returns expenses related to the invention (e.g., patent fees, legal costs).
 
 <CodeGroup>
 ```bash GET /invenciones/{invencionId}/ingresos
-curl -X GET "https://api.example.com/invenciones/123/ingresos" \
+curl -X GET "http://localhost:4280/invenciones/123/ingresos" \
   -H "Authorization: Bearer {token}"
 ```
 </CodeGroup>
@@ -192,7 +192,7 @@ Returns income generated from the invention (e.g., licensing fees).
 
 <CodeGroup>
 ```bash GET /invenciones/{invencionId}/periodostitularidad
-curl -X GET "https://api.example.com/invenciones/123/periodostitularidad" \
+curl -X GET "http://localhost:4280/invenciones/123/periodostitularidad" \
   -H "Authorization: Bearer {token}"
 ```
 </CodeGroup>
@@ -203,7 +203,7 @@ Returns ownership periods and rights holders.
 
 <CodeGroup>
 ```bash GET /invenciones/{invencionId}/repartos
-curl -X GET "https://api.example.com/invenciones/123/repartos" \
+curl -X GET "http://localhost:4280/invenciones/123/repartos" \
   -H "Authorization: Bearer {token}"
 ```
 </CodeGroup>
@@ -218,7 +218,7 @@ Returns revenue distribution calculations among inventors.
 
 <CodeGroup>
 ```bash GET /solicitudesproteccion/{id}
-curl -X GET "https://api.example.com/solicitudesproteccion/456" \
+curl -X GET "http://localhost:4280/solicitudesproteccion/456" \
   -H "Authorization: Bearer {token}"
 ```
 </CodeGroup>
@@ -239,7 +239,7 @@ curl -X GET "https://api.example.com/solicitudesproteccion/456" \
 
 <CodeGroup>
 ```bash POST /solicitudesproteccion
-curl -X POST "https://api.example.com/solicitudesproteccion" \
+curl -X POST "http://localhost:4280/solicitudesproteccion" \
   -H "Authorization: Bearer {token}" \
   -H "Content-Type: application/json" \
   -d '{
@@ -258,7 +258,7 @@ curl -X POST "https://api.example.com/solicitudesproteccion" \
 
 <CodeGroup>
 ```bash PUT /solicitudesproteccion/{id}
-curl -X PUT "https://api.example.com/solicitudesproteccion/456" \
+curl -X PUT "http://localhost:4280/solicitudesproteccion/456" \
   -H "Authorization: Bearer {token}" \
   -H "Content-Type: application/json" \
   -d '{"numeroSolicitud": "ES2024123456"}'
@@ -271,7 +271,7 @@ curl -X PUT "https://api.example.com/solicitudesproteccion/456" \
 
 <CodeGroup>
 ```bash DELETE /solicitudesproteccion/{id}
-curl -X DELETE "https://api.example.com/solicitudesproteccion/456" \
+curl -X DELETE "http://localhost:4280/solicitudesproteccion/456" \
   -H "Authorization: Bearer {token}"
 ```
 </CodeGroup>
@@ -284,7 +284,7 @@ curl -X DELETE "https://api.example.com/solicitudesproteccion/456" \
 
 <CodeGroup>
 ```bash HEAD /solicitudesproteccion/{solicitudProteccionId}/paisesvalidados
-curl -I "https://api.example.com/solicitudesproteccion/456/paisesvalidados" \
+curl -I "http://localhost:4280/solicitudesproteccion/456/paisesvalidados" \
   -H "Authorization: Bearer {token}"
 ```
 </CodeGroup>
@@ -295,7 +295,7 @@ Returns HTTP 200 if validated countries exist, 204 otherwise.
 
 <CodeGroup>
 ```bash GET /solicitudesproteccion/{solicitudProteccionId}/paisesvalidados
-curl -X GET "https://api.example.com/solicitudesproteccion/456/paisesvalidados" \
+curl -X GET "http://localhost:4280/solicitudesproteccion/456/paisesvalidados" \
   -H "Authorization: Bearer {token}"
 ```
 </CodeGroup>
@@ -316,7 +316,7 @@ Returns countries where the patent has been validated.
 
 <CodeGroup>
 ```bash GET /solicitudesproteccion/{solicitudProteccionId}/procedimientos
-curl -X GET "https://api.example.com/solicitudesproteccion/456/procedimientos" \
+curl -X GET "http://localhost:4280/solicitudesproteccion/456/procedimientos" \
   -H "Authorization: Bearer {token}"
 ```
 </CodeGroup>
@@ -338,7 +338,7 @@ Returns legal procedures associated with the protection request.
 
 <CodeGroup>
 ```bash GET /solicitudesproteccion/{solicitudProteccionId}/invenciongastos
-curl -X GET "https://api.example.com/solicitudesproteccion/456/invenciongastos" \
+curl -X GET "http://localhost:4280/solicitudesproteccion/456/invenciongastos" \
   -H "Authorization: Bearer {token}"
 ```
 </CodeGroup>

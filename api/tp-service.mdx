@@ -1,0 +1,332 @@
+---
+title: "TP Service API"
+description: "Scheduled tasks and background job management service"
+---
+
+## Overview
+
+The **TP Service** (Tareas Programadas) manages scheduled tasks and background jobs for the HERCULES SGI platform. It handles recurring operations such as email notifications, data synchronization, and periodic calculations.
+
+<Info>
+  **Base URL**: `http://localhost:4283` (development)  
+  **Service Path**: `/sgitask`, `/config`
+</Info>
+
+## Authentication
+
+All endpoints require a valid OAuth2 access token with administrative permissions.
+
+```bash
+Authorization: Bearer <access_token>
+```
+
+## SGI Task Endpoints
+
+The TP service exposes APIs for managing and monitoring scheduled tasks.
+
+### List Tasks
+
+Retrieve all registered scheduled tasks.
+
+```http
+GET /sgitask
+```
+
+**Required Permissions:**
+- Administrative access to task management
+
+**Example Request:**
+
+```bash
+curl -X GET "http://localhost:4283/sgitask" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+**Response:**
+
+```json
+{
+  "content": [
+    {
+      "id": "email-notifications",
+      "name": "Email Notifications Processor",
+      "description": "Processes pending email notifications",
+      "cronExpression": "0 */5 * * * *",
+      "enabled": true,
+      "lastRun": "2024-03-05T10:30:00Z",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "production-sync",
+      "name": "Scientific Production Sync",
+      "description": "Synchronizes scientific production data from CVN",
+      "cronExpression": "0 0 2 * * *",
+      "enabled": true,
+      "lastRun": "2024-03-05T02:00:00Z",
+      "status": "COMPLETED"
+    }
+  ]
+}
+```
+
+### Get Task by ID
+
+Retrieve details of a specific scheduled task.
+
+```http
+GET /sgitask/{id}
+```
+
+<ParamField path="id" type="string" required>
+  Task identifier
+</ParamField>
+
+**Example Request:**
+
+```bash
+curl -X GET "http://localhost:4283/sgitask/email-notifications" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+**Response:**
+
+```json
+{
+  "id": "email-notifications",
+  "name": "Email Notifications Processor",
+  "description": "Processes pending email notifications from COM service",
+  "cronExpression": "0 */5 * * * *",
+  "enabled": true,
+  "lastRun": "2024-03-05T10:30:00Z",
+  "nextRun": "2024-03-05T10:35:00Z",
+  "status": "COMPLETED",
+  "executionCount": 1234,
+  "lastDuration": 1250,
+  "averageDuration": 1150
+}
+```
+
+### Enable/Disable Task
+
+Enable or disable a scheduled task.
+
+```http
+PUT /sgitask/{id}/enabled
+```
+
+<ParamField path="id" type="string" required>
+  Task identifier
+</ParamField>
+
+<ParamField body="enabled" type="boolean" required>
+  Whether to enable (true) or disable (false) the task
+</ParamField>
+
+**Example Request:**
+
+```bash
+curl -X PUT "http://localhost:4283/sgitask/email-notifications/enabled" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"enabled": false}'
+```
+
+### Trigger Task Manually
+
+Manually trigger a task execution outside its regular schedule.
+
+```http
+POST /sgitask/{id}/run
+```
+
+<ParamField path="id" type="string" required>
+  Task identifier
+</ParamField>
+
+**Example Request:**
+
+```bash
+curl -X POST "http://localhost:4283/sgitask/email-notifications/run" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+**Response:**
+
+```json
+{
+  "taskId": "email-notifications",
+  "executionId": "exec-123456",
+  "status": "RUNNING",
+  "startTime": "2024-03-05T10:35:00Z"
+}
+```
+
+## Task Model
+
+<ResponseField name="id" type="string">
+  Unique task identifier
+</ResponseField>
+
+<ResponseField name="name" type="string">
+  Human-readable task name
+</ResponseField>
+
+<ResponseField name="description" type="string">
+  Task description
+</ResponseField>
+
+<ResponseField name="cronExpression" type="string">
+  Cron expression defining the schedule (e.g., `0 */5 * * * *` for every 5 minutes)
+</ResponseField>
+
+<ResponseField name="enabled" type="boolean">
+  Whether the task is currently enabled
+</ResponseField>
+
+<ResponseField name="lastRun" type="string">
+  ISO 8601 timestamp of last execution
+</ResponseField>
+
+<ResponseField name="nextRun" type="string">
+  ISO 8601 timestamp of next scheduled execution
+</ResponseField>
+
+<ResponseField name="status" type="string">
+  Current status: `RUNNING`, `COMPLETED`, `FAILED`, `DISABLED`
+</ResponseField>
+
+<ResponseField name="executionCount" type="number">
+  Total number of times the task has been executed
+</ResponseField>
+
+<ResponseField name="lastDuration" type="number">
+  Duration of last execution in milliseconds
+</ResponseField>
+
+<ResponseField name="averageDuration" type="number">
+  Average execution duration in milliseconds
+</ResponseField>
+
+## Built-in Scheduled Tasks
+
+The TP service includes several pre-configured tasks:
+
+### Email Notifications Processor
+
+**ID:** `email-notifications`  
+**Schedule:** Every 5 minutes  
+**Purpose:** Processes pending emails from the COM service queue and sends them via SMTP
+
+### Scientific Production Sync
+
+**ID:** `production-sync`  
+**Schedule:** Daily at 2:00 AM  
+**Purpose:** Synchronizes scientific production data from CVN (Currículum Vitae Normalizado)
+
+### Project Budget Calculations
+
+**ID:** `budget-calculations`  
+**Schedule:** Daily at 3:00 AM  
+**Purpose:** Recalculates project budgets, amortizations, and financial summaries
+
+### Ethics Review Reminders
+
+**ID:** `ethics-reminders`  
+**Schedule:** Daily at 9:00 AM  
+**Purpose:** Sends reminder notifications for pending ethics reviews and upcoming deadlines
+
+### Report Cache Cleanup
+
+**ID:** `report-cache-cleanup`  
+**Schedule:** Weekly on Sundays at 1:00 AM  
+**Purpose:** Cleans up old cached reports and temporary files
+
+## Cron Expression Examples
+
+| Expression | Description |
+|------------|-------------|
+| `0 */5 * * * *` | Every 5 minutes |
+| `0 0 * * * *` | Every hour at minute 0 |
+| `0 0 2 * * *` | Daily at 2:00 AM |
+| `0 0 9 * * MON-FRI` | Weekdays at 9:00 AM |
+| `0 0 1 * * SUN` | Sundays at 1:00 AM |
+| `0 30 8 1 * *` | First day of each month at 8:30 AM |
+
+## Configuration Endpoint
+
+The TP service includes a configuration endpoint for managing task-specific settings.
+
+```http
+GET /config
+```
+
+**Example Request:**
+
+```bash
+curl -X GET "http://localhost:4283/config" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+## Task Monitoring
+
+Monitor task execution history and performance metrics to ensure smooth operation.
+
+### Check Task Health
+
+Verify that critical tasks are running successfully:
+
+```bash
+# Get all tasks and check their status
+curl -X GET "http://localhost:4283/sgitask" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  | jq '.content[] | select(.status != "COMPLETED")'
+```
+
+<Warning>
+  If critical tasks like `email-notifications` are failing, check the application logs for error details and verify dependent services (COM service, SMTP server) are operational.
+</Warning>
+
+## Error Responses
+
+<ResponseField name="status" type="number">
+  HTTP status code
+</ResponseField>
+
+<ResponseField name="error" type="string">
+  Error type
+</ResponseField>
+
+<ResponseField name="message" type="string">
+  Human-readable error message
+</ResponseField>
+
+**Example Error Response:**
+
+```json
+{
+  "status": 404,
+  "error": "Not Found",
+  "message": "Task 'invalid-task-id' not found"
+}
+```
+
+## Best Practices
+
+<Tip>
+  - Monitor task execution times to identify performance issues
+  - Disable non-critical tasks during maintenance windows
+  - Test task configurations in development before enabling in production
+  - Keep cron expressions simple and well-documented
+  - Set up alerts for task failures
+</Tip>
+
+## Related Documentation
+
+<CardGroup cols={2}>
+  <Card title="COM Service" icon="envelope" href="/api/com-service">
+    Email and communications processed by scheduled tasks
+  </Card>
+  <Card title="Administrator Guide" icon="user-shield" href="/guides/administrator">
+    System administration and monitoring
+  </Card>
+</CardGroup>

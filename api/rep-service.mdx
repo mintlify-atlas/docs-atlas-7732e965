@@ -28,7 +28,7 @@ Base path: `/report/csp`
 
 <CodeGroup>
 ```bash GET /report/csp/autorizacion-proyecto-externo/{idAutorizacion}
-curl -X GET "https://api.example.com/report/csp/autorizacion-proyecto-externo/123?l=es" \
+curl -X GET "http://localhost:4280/report/csp/autorizacion-proyecto-externo/123?l=es" \
   -H "Authorization: Bearer {token}" \
   --output autorizacion.pdf
 ```
@@ -129,7 +129,7 @@ Reports are generated using JasperReports templates with:
 <CodeGroup>
 ```javascript JavaScript/Fetch
 const response = await fetch(
-  'https://api.example.com/report/csp/autorizacion-proyecto-externo/123?l=en',
+  'http://localhost:4280/report/csp/autorizacion-proyecto-externo/123?l=en',
   {
     headers: {
       'Authorization': 'Bearer ' + token
@@ -149,7 +149,7 @@ a.click();
 import requests
 
 response = requests.get(
-    'https://api.example.com/report/csp/autorizacion-proyecto-externo/123',
+    'http://localhost:4280/report/csp/autorizacion-proyecto-externo/123',
     headers={'Authorization': f'Bearer {token}'},
     params={'l': 'en'}
 )
@@ -160,7 +160,7 @@ with open('authorization-report.pdf', 'wb') as f:
 
 ```java Java
 HttpURLConnection connection = (HttpURLConnection) new URL(
-    "https://api.example.com/report/csp/autorizacion-proyecto-externo/123?l=en"
+    "http://localhost:4280/report/csp/autorizacion-proyecto-externo/123?l=en"
 ).openConnection();
 
 connection.setRequestProperty("Authorization", "Bearer " + token);
@@ -180,7 +180,7 @@ try (InputStream in = connection.getInputStream();
 
 <CodeGroup>
 ```javascript Browser JavaScript
-fetch('https://api.example.com/report/csp/autorizacion-proyecto-externo/123', {
+fetch('http://localhost:4280/report/csp/autorizacion-proyecto-externo/123', {
   headers: { 'Authorization': 'Bearer ' + token }
 })
 .then(response => response.blob())

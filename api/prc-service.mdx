@@ -31,7 +31,7 @@ All endpoints require JWT authentication with PRC-specific permissions:
 
 <CodeGroup>
 ```bash GET /producciones-cientificas/publicaciones
-curl -X GET "https://api.example.com/producciones-cientificas/publicaciones?q=estado==VALIDADO" \
+curl -X GET "http://localhost:4280/producciones-cientificas/publicaciones?q=estado==VALIDADO" \
   -H "Authorization: Bearer {token}"
 ```
 </CodeGroup>
@@ -61,7 +61,7 @@ Returns all publications (for managers).
 
 <CodeGroup>
 ```bash GET /producciones-cientificas/publicaciones/investigador
-curl -X GET "https://api.example.com/producciones-cientificas/publicaciones/investigador" \
+curl -X GET "http://localhost:4280/producciones-cientificas/publicaciones/investigador" \
   -H "Authorization: Bearer {token}"
 ```
 </CodeGroup>
@@ -78,7 +78,7 @@ Returns publications accessible to the authenticated researcher.
 
 <CodeGroup>
 ```bash GET /producciones-cientificas/comites-editoriales
-curl -X GET "https://api.example.com/producciones-cientificas/comites-editoriales" \
+curl -X GET "http://localhost:4280/producciones-cientificas/comites-editoriales" \
   -H "Authorization: Bearer {token}"
 ```
 </CodeGroup>
@@ -100,7 +100,7 @@ curl -X GET "https://api.example.com/producciones-cientificas/comites-editoriale
 
 <CodeGroup>
 ```bash GET /producciones-cientificas/comites-editoriales/investigador
-curl -X GET "https://api.example.com/producciones-cientificas/comites-editoriales/investigador" \
+curl -X GET "http://localhost:4280/producciones-cientificas/comites-editoriales/investigador" \
   -H "Authorization: Bearer {token}"
 ```
 </CodeGroup>
@@ -115,7 +115,7 @@ curl -X GET "https://api.example.com/producciones-cientificas/comites-editoriale
 
 <CodeGroup>
 ```bash GET /producciones-cientificas/congresos
-curl -X GET "https://api.example.com/producciones-cientificas/congresos" \
+curl -X GET "http://localhost:4280/producciones-cientificas/congresos" \
   -H "Authorization: Bearer {token}"
 ```
 </CodeGroup>
@@ -138,7 +138,7 @@ curl -X GET "https://api.example.com/producciones-cientificas/congresos" \
 
 <CodeGroup>
 ```bash GET /producciones-cientificas/congresos/investigador
-curl -X GET "https://api.example.com/producciones-cientificas/congresos/investigador" \
+curl -X GET "http://localhost:4280/producciones-cientificas/congresos/investigador" \
   -H "Authorization: Bearer {token}"
 ```
 </CodeGroup>
@@ -153,7 +153,7 @@ curl -X GET "https://api.example.com/producciones-cientificas/congresos/investig
 
 <CodeGroup>
 ```bash GET /producciones-cientificas/obras-artisticas
-curl -X GET "https://api.example.com/producciones-cientificas/obras-artisticas" \
+curl -X GET "http://localhost:4280/producciones-cientificas/obras-artisticas" \
   -H "Authorization: Bearer {token}"
 ```
 </CodeGroup>
@@ -174,7 +174,7 @@ curl -X GET "https://api.example.com/producciones-cientificas/obras-artisticas" 
 
 <CodeGroup>
 ```bash GET /producciones-cientificas/obras-artisticas/investigador
-curl -X GET "https://api.example.com/producciones-cientificas/obras-artisticas/investigador" \
+curl -X GET "http://localhost:4280/producciones-cientificas/obras-artisticas/investigador" \
   -H "Authorization: Bearer {token}"
 ```
 </CodeGroup>
@@ -189,7 +189,7 @@ curl -X GET "https://api.example.com/producciones-cientificas/obras-artisticas/i
 
 <CodeGroup>
 ```bash GET /producciones-cientificas/direcciones-tesis
-curl -X GET "https://api.example.com/producciones-cientificas/direcciones-tesis" \
+curl -X GET "http://localhost:4280/producciones-cientificas/direcciones-tesis" \
   -H "Authorization: Bearer {token}"
 ```
 </CodeGroup>
@@ -211,7 +211,7 @@ curl -X GET "https://api.example.com/producciones-cientificas/direcciones-tesis"
 
 <CodeGroup>
 ```bash GET /producciones-cientificas/direcciones-tesis/investigador
-curl -X GET "https://api.example.com/producciones-cientificas/direcciones-tesis/investigador" \
+curl -X GET "http://localhost:4280/producciones-cientificas/direcciones-tesis/investigador" \
   -H "Authorization: Bearer {token}"
 ```
 </CodeGroup>
@@ -226,7 +226,7 @@ curl -X GET "https://api.example.com/producciones-cientificas/direcciones-tesis/
 
 <CodeGroup>
 ```bash GET /producciones-cientificas/actividades
-curl -X GET "https://api.example.com/producciones-cientificas/actividades" \
+curl -X GET "http://localhost:4280/producciones-cientificas/actividades" \
   -H "Authorization: Bearer {token}"
 ```
 </CodeGroup>
@@ -248,7 +248,7 @@ curl -X GET "https://api.example.com/producciones-cientificas/actividades" \
 
 <CodeGroup>
 ```bash GET /producciones-cientificas/actividades/investigador
-curl -X GET "https://api.example.com/producciones-cientificas/actividades/investigador" \
+curl -X GET "http://localhost:4280/producciones-cientificas/actividades/investigador" \
   -H "Authorization: Bearer {token}"
 ```
 </CodeGroup>
@@ -263,7 +263,7 @@ curl -X GET "https://api.example.com/producciones-cientificas/actividades/invest
 
 <CodeGroup>
 ```bash GET /producciones-cientificas/{id}
-curl -X GET "https://api.example.com/producciones-cientificas/123" \
+curl -X GET "http://localhost:4280/producciones-cientificas/123" \
   -H "Authorization: Bearer {token}"
 ```
 </CodeGroup>
@@ -276,7 +276,7 @@ curl -X GET "https://api.example.com/producciones-cientificas/123" \
 
 <CodeGroup>
 ```bash GET /producciones-cientificas/{id}/autores
-curl -X GET "https://api.example.com/producciones-cientificas/123/autores" \
+curl -X GET "http://localhost:4280/producciones-cientificas/123/autores" \
   -H "Authorization: Bearer {token}"
 ```
 </CodeGroup>
@@ -297,7 +297,7 @@ Returns authors/contributors of the scientific production.
 
 <CodeGroup>
 ```bash GET /producciones-cientificas/{id}/indices-impacto
-curl -X GET "https://api.example.com/producciones-cientificas/123/indices-impacto" \
+curl -X GET "http://localhost:4280/producciones-cientificas/123/indices-impacto" \
   -H "Authorization: Bearer {token}"
 ```
 </CodeGroup>
@@ -318,7 +318,7 @@ Returns impact factor and citation metrics.
 
 <CodeGroup>
 ```bash GET /producciones-cientificas/{id}/proyectos
-curl -X GET "https://api.example.com/producciones-cientificas/123/proyectos" \
+curl -X GET "http://localhost:4280/producciones-cientificas/123/proyectos" \
   -H "Authorization: Bearer {token}"
 ```
 </CodeGroup>
@@ -329,7 +329,7 @@ Returns research projects related to this production.
 
 <CodeGroup>
 ```bash GET /producciones-cientificas/{id}/acreditaciones
-curl -X GET "https://api.example.com/producciones-cientificas/123/acreditaciones" \
+curl -X GET "http://localhost:4280/producciones-cientificas/123/acreditaciones" \
   -H "Authorization: Bearer {token}"
 ```
 </CodeGroup>
@@ -340,7 +340,7 @@ Returns academic accreditations associated with this production.
 
 <CodeGroup>
 ```bash GET /producciones-cientificas/{id}/campos
-curl -X GET "https://api.example.com/producciones-cientificas/123/campos" \
+curl -X GET "http://localhost:4280/producciones-cientificas/123/campos" \
   -H "Authorization: Bearer {token}"
 ```
 </CodeGroup>
@@ -351,7 +351,7 @@ Returns custom fields and metadata for the production.
 
 <CodeGroup>
 ```bash GET /producciones-cientificas/{id}/campos/{campoId}/valores
-curl -X GET "https://api.example.com/producciones-cientificas/123/campos/5/valores" \
+curl -X GET "http://localhost:4280/producciones-cientificas/123/campos/5/valores" \
   -H "Authorization: Bearer {token}"
 ```
 </CodeGroup>
@@ -366,7 +366,7 @@ Returns values for a specific metadata field.
 
 <CodeGroup>
 ```bash PATCH /producciones-cientificas/{id}/validar
-curl -X PATCH "https://api.example.com/producciones-cientificas/123/validar" \
+curl -X PATCH "http://localhost:4280/producciones-cientificas/123/validar" \
   -H "Authorization: Bearer {token}" \
   -H "Content-Type: application/json" \
   -d '{"estado": "VALIDADO"}'
@@ -381,7 +381,7 @@ Validates a scientific production (manager action).
 
 <CodeGroup>
 ```bash PATCH /producciones-cientificas/{id}/validar/investigador
-curl -X PATCH "https://api.example.com/producciones-cientificas/123/validar/investigador" \
+curl -X PATCH "http://localhost:4280/producciones-cientificas/123/validar/investigador" \
   -H "Authorization: Bearer {token}" \
   -H "Content-Type: application/json" \
   -d '{"estado": "VALIDADO"}'
@@ -396,7 +396,7 @@ Validates own production (researcher action).
 
 <CodeGroup>
 ```bash PATCH /producciones-cientificas/{id}/rechazar
-curl -X PATCH "https://api.example.com/producciones-cientificas/123/rechazar" \
+curl -X PATCH "http://localhost:4280/producciones-cientificas/123/rechazar" \
   -H "Authorization: Bearer {token}" \
   -H "Content-Type: application/json" \
   -d '{"estado": "RECHAZADO", "comentario": "Reason for rejection"}'
@@ -409,7 +409,7 @@ curl -X PATCH "https://api.example.com/producciones-cientificas/123/rechazar" \
 
 <CodeGroup>
 ```bash HEAD /producciones-cientificas/{id}/modificable/investigador
-curl -I "https://api.example.com/producciones-cientificas/123/modificable/investigador" \
+curl -I "http://localhost:4280/producciones-cientificas/123/modificable/investigador" \
   -H "Authorization: Bearer {token}"
 ```
 </CodeGroup>

@@ -1,0 +1,318 @@
+---
+title: "CNF Service API"
+description: "Configuration management service for system-wide settings and resources"
+---
+
+## Overview
+
+The **CNF Service** (Configuración) manages system-wide configuration settings and I18N resources for the HERCULES SGI platform. It provides centralized configuration management that other services consume.
+
+<Info>
+  **Base URL**: `http://localhost:4281` (development)  
+  **Service Path**: `/config`, `/resources`
+</Info>
+
+## Authentication
+
+All endpoints require a valid OAuth2 access token with appropriate permissions.
+
+```bash
+Authorization: Bearer <access_token>
+```
+
+## Configuration Endpoints
+
+### List Configurations
+
+Retrieve a paginated list of all configuration entries.
+
+```http
+GET /config
+```
+
+<ParamField query="q" type="string">
+  RSQL filter query for searching configurations
+</ParamField>
+
+<ParamField query="s" type="string">
+  Sorting criteria (e.g., `name,asc`)
+</ParamField>
+
+**Example Request:**
+
+```bash
+curl -X GET "http://localhost:4281/config?q=name==*time*&s=name,asc" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+**Response:**
+
+```json
+{
+  "content": [
+    {
+      "name": "time-zone",
+      "value": "Europe/Madrid",
+      "description": "Default time zone for the application"
+    }
+  ],
+  "totalElements": 1,
+  "totalPages": 1,
+  "number": 0,
+  "size": 10
+}
+```
+
+### Get Configuration by Name
+
+Retrieve a specific configuration value by its name.
+
+```http
+GET /config/{name}
+```
+
+<ParamField path="name" type="string" required>
+  The configuration key name
+</ParamField>
+
+**Example Request:**
+
+```bash
+curl -X GET "http://localhost:4281/config/time-zone" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+**Response:**
+
+```json
+{
+  "name": "time-zone",
+  "value": "Europe/Madrid",
+  "description": "Default time zone for the application"
+}
+```
+
+### Create Configuration
+
+Create a new configuration entry.
+
+```http
+POST /config
+```
+
+<ParamField body="name" type="string" required>
+  Unique configuration key name
+</ParamField>
+
+<ParamField body="value" type="string" required>
+  Configuration value
+</ParamField>
+
+<ParamField body="description" type="string">
+  Optional description of the configuration parameter
+</ParamField>
+
+**Example Request:**
+
+```bash
+curl -X POST "http://localhost:4281/config" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "max-upload-size",
+    "value": "10485760",
+    "description": "Maximum file upload size in bytes"
+  }'
+```
+
+### Update Configuration
+
+Update an existing configuration value.
+
+```http
+PUT /config/{name}
+```
+
+<ParamField path="name" type="string" required>
+  The configuration key name to update
+</ParamField>
+
+<ParamField body="value" type="string" required>
+  New configuration value
+</ParamField>
+
+**Example Request:**
+
+```bash
+curl -X PUT "http://localhost:4281/config/time-zone" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "value": "Europe/London"
+  }'
+```
+
+### Delete Configuration
+
+Delete a configuration entry.
+
+```http
+DELETE /config/{name}
+```
+
+<ParamField path="name" type="string" required>
+  The configuration key name to delete
+</ParamField>
+
+**Example Request:**
+
+```bash
+curl -X DELETE "http://localhost:4281/config/max-upload-size" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+### Restore Default Configuration
+
+Restore a configuration to its default value.
+
+```http
+PATCH /config/{name}/restore
+```
+
+<ParamField path="name" type="string" required>
+  The configuration key name to restore
+</ParamField>
+
+**Example Request:**
+
+```bash
+curl -X PATCH "http://localhost:4281/config/time-zone/restore" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+### Get Time Zone
+
+Retrieve the current system time zone setting.
+
+```http
+GET /config/time-zone
+```
+
+**Example Request:**
+
+```bash
+curl -X GET "http://localhost:4281/config/time-zone" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+**Response:**
+
+```json
+{
+  "id": "Europe/Madrid",
+  "displayName": "Central European Time",
+  "rawOffset": 3600000
+}
+```
+
+## Resource Endpoints
+
+The CNF service also manages I18N resources (translations) for the web interface.
+
+### List Resources
+
+Retrieve available language resources.
+
+```http
+GET /resources
+```
+
+**Example Request:**
+
+```bash
+curl -X GET "http://localhost:4281/resources" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+**Response:**
+
+```json
+{
+  "content": [
+    {
+      "locale": "es",
+      "key": "common.save",
+      "value": "Guardar"
+    },
+    {
+      "locale": "en",
+      "key": "common.save",
+      "value": "Save"
+    }
+  ]
+}
+```
+
+## Public Endpoints
+
+The CNF service exposes public endpoints (no authentication required) for configuration and resources that the frontend needs before user login.
+
+### Get Public Configuration
+
+```http
+GET /public/config/{name}
+```
+
+### Get Public Resources
+
+```http
+GET /public/resources
+```
+
+<Note>
+  Public endpoints return only non-sensitive configuration values that are safe to expose to unauthenticated clients.
+</Note>
+
+## Common Configuration Keys
+
+| Key | Type | Description | Default |
+|-----|------|-------------|---------|
+| `time-zone` | String | System time zone | `Europe/Madrid` |
+| `date-format` | String | Date display format | `dd/MM/yyyy` |
+| `locale` | String | Default locale | `es` |
+| `max-upload-size` | Number | Max file upload size (bytes) | `10485760` |
+
+## Error Responses
+
+<ResponseField name="status" type="number">
+  HTTP status code
+</ResponseField>
+
+<ResponseField name="error" type="string">
+  Error type
+</ResponseField>
+
+<ResponseField name="message" type="string">
+  Human-readable error message
+</ResponseField>
+
+**Example Error Response:**
+
+```json
+{
+  "status": 404,
+  "error": "Not Found",
+  "message": "Configuration 'invalid-key' not found"
+}
+```
+
+## Related Documentation
+
+<CardGroup cols={2}>
+  <Card title="Administrator Guide" icon="user-shield" href="/guides/administrator">
+    System configuration and management
+  </Card>
+  <Card title="Deployment Configuration" icon="gear" href="/deployment/configuration">
+    Environment and service configuration
+  </Card>
+</CardGroup>

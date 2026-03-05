@@ -30,7 +30,7 @@ All endpoints require JWT authentication with ETI-specific permissions:
 
 <CodeGroup>
 ```bash GET /comites
-curl -X GET "https://api.example.com/comites" \
+curl -X GET "http://localhost:4280/comites" \
   -H "Authorization: Bearer {token}"
 ```
 </CodeGroup>
@@ -54,7 +54,7 @@ curl -X GET "https://api.example.com/comites" \
 
 <CodeGroup>
 ```bash GET /comites/{id}
-curl -X GET "https://api.example.com/comites/1" \
+curl -X GET "http://localhost:4280/comites/1" \
   -H "Authorization: Bearer {token}"
 ```
 </CodeGroup>
@@ -67,7 +67,7 @@ curl -X GET "https://api.example.com/comites/1" \
 
 <CodeGroup>
 ```bash GET /comites/{idComite}/memorias-peticion-evaluacion/{idPeticionEvaluacion}
-curl -X GET "https://api.example.com/comites/1/memorias-peticion-evaluacion/123" \
+curl -X GET "http://localhost:4280/comites/1/memorias-peticion-evaluacion/123" \
   -H "Authorization: Bearer {token}"
 ```
 </CodeGroup>
@@ -84,7 +84,7 @@ Returns modifiable memorias for a specific evaluation request in a committee.
 
 <CodeGroup>
 ```bash GET /memorias
-curl -X GET "https://api.example.com/memorias?q=estadoActual.id==1" \
+curl -X GET "http://localhost:4280/memorias?q=estadoActual.id==1" \
   -H "Authorization: Bearer {token}"
 ```
 </CodeGroup>
@@ -111,7 +111,7 @@ curl -X GET "https://api.example.com/memorias?q=estadoActual.id==1" \
 
 <CodeGroup>
 ```bash GET /memorias/{id}
-curl -X GET "https://api.example.com/memorias/123" \
+curl -X GET "http://localhost:4280/memorias/123" \
   -H "Authorization: Bearer {token}"
 ```
 </CodeGroup>
@@ -122,7 +122,7 @@ curl -X GET "https://api.example.com/memorias/123" \
 
 <CodeGroup>
 ```bash POST /memorias
-curl -X POST "https://api.example.com/memorias" \
+curl -X POST "http://localhost:4280/memorias" \
   -H "Authorization: Bearer {token}" \
   -H "Content-Type: application/json" \
   -d '{
@@ -140,7 +140,7 @@ curl -X POST "https://api.example.com/memorias" \
 
 <CodeGroup>
 ```bash PUT /memorias/{id}
-curl -X PUT "https://api.example.com/memorias/123" \
+curl -X PUT "http://localhost:4280/memorias/123" \
   -H "Authorization: Bearer {token}" \
   -H "Content-Type: application/json" \
   -d '{"titulo": "Updated Title"}'
@@ -153,7 +153,7 @@ curl -X PUT "https://api.example.com/memorias/123" \
 
 <CodeGroup>
 ```bash DELETE /memorias/{id}
-curl -X DELETE "https://api.example.com/memorias/123" \
+curl -X DELETE "http://localhost:4280/memorias/123" \
   -H "Authorization: Bearer {token}"
 ```
 </CodeGroup>
@@ -166,7 +166,7 @@ Deactivates (soft delete) the memoria.
 
 <CodeGroup>
 ```bash POST /memorias/{id}/crear-memoria-modificada
-curl -X POST "https://api.example.com/memorias/123/crear-memoria-modificada" \
+curl -X POST "http://localhost:4280/memorias/123/crear-memoria-modificada" \
   -H "Authorization: Bearer {token}" \
   -H "Content-Type: application/json" \
   -d '{"titulo": "Modified Version"}'
@@ -179,7 +179,7 @@ Creates a modified version based on an existing memoria.
 
 <CodeGroup>
 ```bash GET /memorias/{id}/evaluaciones-anteriores/{idEvaluacion}/{idTipoComentario}
-curl -X GET "https://api.example.com/memorias/123/evaluaciones-anteriores/789/1" \
+curl -X GET "http://localhost:4280/memorias/123/evaluaciones-anteriores/789/1" \
   -H "Authorization: Bearer {token}"
 ```
 </CodeGroup>
@@ -190,7 +190,7 @@ Returns previous evaluations for a memoria.
 
 <CodeGroup>
 ```bash GET /memorias/{id}/documentacion-inicial
-curl -X GET "https://api.example.com/memorias/123/documentacion-inicial" \
+curl -X GET "http://localhost:4280/memorias/123/documentacion-inicial" \
   -H "Authorization: Bearer {token}"
 ```
 </CodeGroup>
@@ -201,7 +201,7 @@ Returns initial documentation required for the memoria.
 
 <CodeGroup>
 ```bash GET /memorias/{id}/estado-actual
-curl -X GET "https://api.example.com/memorias/123/estado-actual" \
+curl -X GET "http://localhost:4280/memorias/123/estado-actual" \
   -H "Authorization: Bearer {token}"
 ```
 </CodeGroup>
@@ -216,7 +216,7 @@ Returns the current state of the memoria.
 
 <CodeGroup>
 ```bash GET /evaluaciones
-curl -X GET "https://api.example.com/evaluaciones?q=activo==true" \
+curl -X GET "http://localhost:4280/evaluaciones?q=activo==true" \
   -H "Authorization: Bearer {token}"
 ```
 </CodeGroup>
@@ -239,7 +239,7 @@ curl -X GET "https://api.example.com/evaluaciones?q=activo==true" \
 
 <CodeGroup>
 ```bash GET /evaluaciones/{id}
-curl -X GET "https://api.example.com/evaluaciones/789" \
+curl -X GET "http://localhost:4280/evaluaciones/789" \
   -H "Authorization: Bearer {token}"
 ```
 </CodeGroup>
@@ -250,7 +250,7 @@ curl -X GET "https://api.example.com/evaluaciones/789" \
 
 <CodeGroup>
 ```bash POST /evaluaciones
-curl -X POST "https://api.example.com/evaluaciones" \
+curl -X POST "http://localhost:4280/evaluaciones" \
   -H "Authorization: Bearer {token}" \
   -H "Content-Type: application/json" \
   -d '{
@@ -268,7 +268,7 @@ curl -X POST "https://api.example.com/evaluaciones" \
 
 <CodeGroup>
 ```bash PUT /evaluaciones/{id}
-curl -X PUT "https://api.example.com/evaluaciones/789" \
+curl -X PUT "http://localhost:4280/evaluaciones/789" \
   -H "Authorization: Bearer {token}" \
   -H "Content-Type: application/json" \
   -d '{"dictamen": {"id": 2}}'
@@ -281,7 +281,7 @@ curl -X PUT "https://api.example.com/evaluaciones/789" \
 
 <CodeGroup>
 ```bash DELETE /evaluaciones/{id}
-curl -X DELETE "https://api.example.com/evaluaciones/789" \
+curl -X DELETE "http://localhost:4280/evaluaciones/789" \
   -H "Authorization: Bearer {token}"
 ```
 </CodeGroup>
@@ -294,7 +294,7 @@ Deactivates the evaluation.
 
 <CodeGroup>
 ```bash GET /evaluaciones/convocatoriareunion/{id}
-curl -X GET "https://api.example.com/evaluaciones/convocatoriareunion/456" \
+curl -X GET "http://localhost:4280/evaluaciones/convocatoriareunion/456" \
   -H "Authorization: Bearer {token}"
 ```
 </CodeGroup>
@@ -309,7 +309,7 @@ Returns all active evaluations for a committee meeting.
 
 <CodeGroup>
 ```bash GET /evaluaciones/{id}/comentarios-evaluador
-curl -X GET "https://api.example.com/evaluaciones/789/comentarios-evaluador" \
+curl -X GET "http://localhost:4280/evaluaciones/789/comentarios-evaluador" \
   -H "Authorization: Bearer {token}"
 ```
 </CodeGroup>
@@ -322,7 +322,7 @@ Returns comments from evaluators for this evaluation.
 
 <CodeGroup>
 ```bash GET /evaluaciones/{id}/comentarios-gestor
-curl -X GET "https://api.example.com/evaluaciones/789/comentarios-gestor" \
+curl -X GET "http://localhost:4280/evaluaciones/789/comentarios-gestor" \
   -H "Authorization: Bearer {token}"
 ```
 </CodeGroup>

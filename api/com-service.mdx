@@ -30,7 +30,7 @@ The COM service is primarily used by other SGI services for sending notification
 
 <CodeGroup>
 ```bash GET /emails
-curl -X GET "https://api.example.com/emails?q=subject=like='Research%'" \
+curl -X GET "http://localhost:4280/emails?q=subject=like='Research%'" \
   -H "Authorization: Bearer {token}"
 ```
 </CodeGroup>
@@ -73,7 +73,7 @@ Returns a paginated list of emails.
 
 <CodeGroup>
 ```bash GET /emails/{id}
-curl -X GET "https://api.example.com/emails/123" \
+curl -X GET "http://localhost:4280/emails/123" \
   -H "Authorization: Bearer {token}"
 ```
 </CodeGroup>
@@ -88,7 +88,7 @@ Returns complete email details including recipients, attachments, and parameters
 
 <CodeGroup>
 ```bash POST /emails
-curl -X POST "https://api.example.com/emails" \
+curl -X POST "http://localhost:4280/emails" \
   -H "Authorization: Bearer {token}" \
   -H "Content-Type: application/json" \
   -d '{
@@ -161,7 +161,7 @@ Returns the created Email object with HTTP 201 status.
 
 <CodeGroup>
 ```bash PUT /emails/{id}
-curl -X PUT "https://api.example.com/emails/123" \
+curl -X PUT "http://localhost:4280/emails/123" \
   -H "Authorization: Bearer {token}" \
   -H "Content-Type: application/json" \
   -d '{
@@ -182,7 +182,7 @@ Updates an existing email. **Note:** Only unsent emails can be updated.
 
 <CodeGroup>
 ```bash DELETE /emails/{id}
-curl -X DELETE "https://api.example.com/emails/123" \
+curl -X DELETE "http://localhost:4280/emails/123" \
   -H "Authorization: Bearer {token}"
 ```
 </CodeGroup>
@@ -199,7 +199,7 @@ Deletes an email record.
 
 <CodeGroup>
 ```bash GET /emails/{id}/send
-curl -X GET "https://api.example.com/emails/123/send" \
+curl -X GET "http://localhost:4280/emails/123/send" \
   -H "Authorization: Bearer {token}"
 ```
 </CodeGroup>
@@ -310,7 +310,7 @@ const email = {
 };
 
 // Create email
-const response = await fetch('https://api.example.com/emails', {
+const response = await fetch('http://localhost:4280/emails', {
   method: 'POST',
   headers: {
     'Authorization': `Bearer ${token}`,
@@ -322,7 +322,7 @@ const response = await fetch('https://api.example.com/emails', {
 const created = await response.json();
 
 // Send email
-const sendResponse = await fetch(`https://api.example.com/emails/${created.id}/send`, {
+const sendResponse = await fetch(`http://localhost:4280/emails/${created.id}/send`, {
   headers: { 'Authorization': `Bearer ${token}` }
 });
 
@@ -363,7 +363,7 @@ email = {
 
 # Create and send
 response = requests.post(
-    'https://api.example.com/emails',
+    'http://localhost:4280/emails',
     json=email,
     headers={'Authorization': f'Bearer {token}'}
 )
@@ -372,7 +372,7 @@ email_id = response.json()['id']
 
 # Send it
 send_response = requests.get(
-    f'https://api.example.com/emails/{email_id}/send',
+    f'http://localhost:4280/emails/{email_id}/send',
     headers={'Authorization': f'Bearer {token}'}
 )
 

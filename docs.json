@@ -71,7 +71,11 @@
               "api/pii-service",
               "api/prc-service",
               "api/rep-service",
-              "api/com-service"
+              "api/com-service",
+              "api/cnf-service",
+              "api/usr-service",
+              "api/tp-service",
+              "api/rel-service"
             ]
           },
           {

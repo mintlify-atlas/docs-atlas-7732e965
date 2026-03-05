@@ -33,7 +33,7 @@ Permissions ending in `-C`, `-E`, `-V`, `-B`, `-R` indicate Create, Edit, View, 
 
 <CodeGroup>
 ```bash GET /convocatorias/investigador
-curl -X GET "https://api.example.com/convocatorias/investigador?q=activo==true" \
+curl -X GET "http://localhost:4280/convocatorias/investigador?q=activo==true" \
   -H "Authorization: Bearer {token}"
 ```
 </CodeGroup>
@@ -73,7 +73,7 @@ curl -X GET "https://api.example.com/convocatorias/investigador?q=activo==true" 
 
 <CodeGroup>
 ```bash GET /convocatorias/{id}
-curl -X GET "https://api.example.com/convocatorias/123" \
+curl -X GET "http://localhost:4280/convocatorias/123" \
   -H "Authorization: Bearer {token}"
 ```
 </CodeGroup>
@@ -86,7 +86,7 @@ curl -X GET "https://api.example.com/convocatorias/123" \
 
 <CodeGroup>
 ```bash POST /convocatorias
-curl -X POST "https://api.example.com/convocatorias" \
+curl -X POST "http://localhost:4280/convocatorias" \
   -H "Authorization: Bearer {token}" \
   -H "Content-Type: application/json" \
   -d '{
@@ -105,7 +105,7 @@ curl -X POST "https://api.example.com/convocatorias" \
 
 <CodeGroup>
 ```bash PUT /convocatorias/{id}
-curl -X PUT "https://api.example.com/convocatorias/123" \
+curl -X PUT "http://localhost:4280/convocatorias/123" \
   -H "Authorization: Bearer {token}" \
   -H "Content-Type: application/json" \
   -d '{"titulo": "Updated Title"}'
@@ -120,7 +120,7 @@ curl -X PUT "https://api.example.com/convocatorias/123" \
 
 <CodeGroup>
 ```bash GET /convocatorias/{id}/convocatoriafases
-curl -X GET "https://api.example.com/convocatorias/123/convocatoriafases" \
+curl -X GET "http://localhost:4280/convocatorias/123/convocatoriafases" \
   -H "Authorization: Bearer {token}"
 ```
 </CodeGroup>
@@ -131,7 +131,7 @@ Returns the phases/milestones defined for a grant call.
 
 <CodeGroup>
 ```bash GET /convocatorias/{id}/convocatoriaentidadfinanciadoras
-curl -X GET "https://api.example.com/convocatorias/123/convocatoriaentidadfinanciadoras" \
+curl -X GET "http://localhost:4280/convocatorias/123/convocatoriaentidadfinanciadoras" \
   -H "Authorization: Bearer {token}"
 ```
 </CodeGroup>
@@ -140,7 +140,7 @@ curl -X GET "https://api.example.com/convocatorias/123/convocatoriaentidadfinanc
 
 <CodeGroup>
 ```bash GET /convocatorias/{id}/convocatoriadocumentos
-curl -X GET "https://api.example.com/convocatorias/123/convocatoriadocumentos" \
+curl -X GET "http://localhost:4280/convocatorias/123/convocatoriadocumentos" \
   -H "Authorization: Bearer {token}"
 ```
 </CodeGroup>
@@ -153,7 +153,7 @@ curl -X GET "https://api.example.com/convocatorias/123/convocatoriadocumentos" \
 
 <CodeGroup>
 ```bash GET /solicitudes
-curl -X GET "https://api.example.com/solicitudes?q=estado.estado==BORRADOR" \
+curl -X GET "http://localhost:4280/solicitudes?q=estado.estado==BORRADOR" \
   -H "Authorization: Bearer {token}"
 ```
 </CodeGroup>
@@ -181,7 +181,7 @@ Returns applications within the user's management unit.
 
 <CodeGroup>
 ```bash GET /solicitudes/{id}
-curl -X GET "https://api.example.com/solicitudes/456" \
+curl -X GET "http://localhost:4280/solicitudes/456" \
   -H "Authorization: Bearer {token}"
 ```
 </CodeGroup>
@@ -190,7 +190,7 @@ curl -X GET "https://api.example.com/solicitudes/456" \
 
 <CodeGroup>
 ```bash POST /solicitudes
-curl -X POST "https://api.example.com/solicitudes" \
+curl -X POST "http://localhost:4280/solicitudes" \
   -H "Authorization: Bearer {token}" \
   -H "Content-Type: application/json" \
   -d '{
@@ -207,7 +207,7 @@ curl -X POST "https://api.example.com/solicitudes" \
 
 <CodeGroup>
 ```bash PATCH /solicitudes/{id}/cambiar-estado
-curl -X PATCH "https://api.example.com/solicitudes/456/cambiar-estado" \
+curl -X PATCH "http://localhost:4280/solicitudes/456/cambiar-estado" \
   -H "Authorization: Bearer {token}" \
   -H "Content-Type: application/json" \
   -d '{"estado": "PRESENTADA"}'
@@ -222,7 +222,7 @@ Changes the application state (e.g., from BORRADOR to PRESENTADA).
 
 <CodeGroup>
 ```bash GET /solicitudes/{id}/solicitudproyecto
-curl -X GET "https://api.example.com/solicitudes/456/solicitudproyecto" \
+curl -X GET "http://localhost:4280/solicitudes/456/solicitudproyecto" \
   -H "Authorization: Bearer {token}"
 ```
 </CodeGroup>
@@ -231,7 +231,7 @@ curl -X GET "https://api.example.com/solicitudes/456/solicitudproyecto" \
 
 <CodeGroup>
 ```bash GET /solicitudes/{id}/solicitudproyectopresupuestos
-curl -X GET "https://api.example.com/solicitudes/456/solicitudproyectopresupuestos" \
+curl -X GET "http://localhost:4280/solicitudes/456/solicitudproyectopresupuestos" \
   -H "Authorization: Bearer {token}"
 ```
 </CodeGroup>
@@ -240,7 +240,7 @@ curl -X GET "https://api.example.com/solicitudes/456/solicitudproyectopresupuest
 
 <CodeGroup>
 ```bash GET /solicitudes/{id}/solicituddocumentos
-curl -X GET "https://api.example.com/solicitudes/456/solicituddocumentos" \
+curl -X GET "http://localhost:4280/solicitudes/456/solicituddocumentos" \
   -H "Authorization: Bearer {token}"
 ```
 </CodeGroup>
@@ -253,7 +253,7 @@ curl -X GET "https://api.example.com/solicitudes/456/solicituddocumentos" \
 
 <CodeGroup>
 ```bash GET /proyectos
-curl -X GET "https://api.example.com/proyectos?q=activo==true" \
+curl -X GET "http://localhost:4280/proyectos?q=activo==true" \
   -H "Authorization: Bearer {token}"
 ```
 </CodeGroup>
@@ -278,7 +278,7 @@ Returns active projects within the user's management unit.
 
 <CodeGroup>
 ```bash GET /proyectos/{id}
-curl -X GET "https://api.example.com/proyectos/789" \
+curl -X GET "http://localhost:4280/proyectos/789" \
   -H "Authorization: Bearer {token}"
 ```
 </CodeGroup>
@@ -287,7 +287,7 @@ curl -X GET "https://api.example.com/proyectos/789" \
 
 <CodeGroup>
 ```bash POST /proyectos/{solicitudId}/solicitud
-curl -X POST "https://api.example.com/proyectos/456/solicitud" \
+curl -X POST "http://localhost:4280/proyectos/456/solicitud" \
   -H "Authorization: Bearer {token}" \
   -H "Content-Type: application/json" \
   -d '{"fechaInicio": "2024-03-01"}'
@@ -302,7 +302,7 @@ Creates a new project from an approved application.
 
 <CodeGroup>
 ```bash PATCH /proyectos/{id}/cambiar-estado
-curl -X PATCH "https://api.example.com/proyectos/789/cambiar-estado" \
+curl -X PATCH "http://localhost:4280/proyectos/789/cambiar-estado" \
   -H "Authorization: Bearer {token}" \
   -H "Content-Type: application/json" \
   -d '{"estado": "CONCEDIDO"}'
@@ -315,7 +315,7 @@ curl -X PATCH "https://api.example.com/proyectos/789/cambiar-estado" \
 
 <CodeGroup>
 ```bash GET /proyectos/{id}/proyectoequipos
-curl -X GET "https://api.example.com/proyectos/789/proyectoequipos" \
+curl -X GET "http://localhost:4280/proyectos/789/proyectoequipos" \
   -H "Authorization: Bearer {token}"
 ```
 </CodeGroup>
@@ -326,7 +326,7 @@ Returns project team members with their roles and participation periods.
 
 <CodeGroup>
 ```bash GET /proyectos/{id}/anualidades
-curl -X GET "https://api.example.com/proyectos/789/anualidades" \
+curl -X GET "http://localhost:4280/proyectos/789/anualidades" \
   -H "Authorization: Bearer {token}"
 ```
 </CodeGroup>
@@ -335,7 +335,7 @@ curl -X GET "https://api.example.com/proyectos/789/anualidades" \
 
 <CodeGroup>
 ```bash GET /proyectos/{id}/documentos
-curl -X GET "https://api.example.com/proyectos/789/documentos" \
+curl -X GET "http://localhost:4280/proyectos/789/documentos" \
   -H "Authorization: Bearer {token}"
 ```
 </CodeGroup>
@@ -344,7 +344,7 @@ curl -X GET "https://api.example.com/proyectos/789/documentos" \
 
 <CodeGroup>
 ```bash GET /proyectos/{id}/proyectofases
-curl -X GET "https://api.example.com/proyectos/789/proyectofases" \
+curl -X GET "http://localhost:4280/proyectos/789/proyectofases" \
   -H "Authorization: Bearer {token}"
 ```
 </CodeGroup>

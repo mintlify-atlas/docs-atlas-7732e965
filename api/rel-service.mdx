@@ -1,0 +1,384 @@
+---
+title: "REL Service API"
+description: "Module relations and cross-reference management service"
+---
+
+## Overview
+
+The **REL Service** (Relaciones) manages relationships and cross-references between entities across different modules in the HERCULES SGI platform. It enables linking and tracking connections between projects, applications, ethics reviews, intellectual property, and other entities.
+
+<Info>
+  **Base URL**: `http://localhost:4284` (development)  
+  **Service Path**: `/relaciones`
+</Info>
+
+## Authentication
+
+All endpoints require a valid OAuth2 access token with appropriate permissions.
+
+```bash
+Authorization: Bearer <access_token>
+```
+
+## Relations Endpoints
+
+### List Relations
+
+Retrieve a paginated and filtered list of relations between entities.
+
+```http
+GET /relaciones
+```
+
+<ParamField query="q" type="string">
+  RSQL filter query for searching relations
+</ParamField>
+
+<ParamField query="s" type="string">
+  Sorting criteria (e.g., `id,asc`)
+</ParamField>
+
+<ParamField query="page" type="number">
+  Page number (0-indexed)
+</ParamField>
+
+<ParamField query="size" type="number">
+  Page size
+</ParamField>
+
+**Example Request:**
+
+```bash
+curl -X GET "http://localhost:4284/relaciones?q=tipoEntidadOrigen=='PROYECTO'&page=0&size=10" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+**Response:**
+
+```json
+{
+  "content": [
+    {
+      "id": 1,
+      "tipoEntidadOrigen": "PROYECTO",
+      "entidadOrigenRef": "proyecto-123",
+      "tipoEntidadDestino": "SOLICITUD",
+      "entidadDestinoRef": "solicitud-456",
+      "tipoRelacion": "DERIVED_FROM",
+      "observaciones": "Project created from application"
+    },
+    {
+      "id": 2,
+      "tipoEntidadOrigen": "PROYECTO",
+      "entidadOrigenRef": "proyecto-123",
+      "tipoEntidadDestino": "MEMORIA",
+      "entidadDestinoRef": "memoria-789",
+      "tipoRelacion": "REQUIRES_ETHICS_REVIEW",
+      "observaciones": "Ethics review required for this project"
+    }
+  ],
+  "totalElements": 2,
+  "totalPages": 1,
+  "number": 0,
+  "size": 10
+}
+```
+
+### Get Relation by ID
+
+Retrieve a specific relation by its identifier.
+
+```http
+GET /relaciones/{id}
+```
+
+<ParamField path="id" type="number" required>
+  Relation identifier
+</ParamField>
+
+**Example Request:**
+
+```bash
+curl -X GET "http://localhost:4284/relaciones/1" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+**Response:**
+
+```json
+{
+  "id": 1,
+  "tipoEntidadOrigen": "PROYECTO",
+  "entidadOrigenRef": "proyecto-123",
+  "tipoEntidadDestino": "SOLICITUD",
+  "entidadDestinoRef": "solicitud-456",
+  "tipoRelacion": "DERIVED_FROM",
+  "observaciones": "Project created from application",
+  "fechaCreacion": "2024-01-15T10:30:00Z"
+}
+```
+
+### Create Relation
+
+Create a new relation between two entities.
+
+```http
+POST /relaciones
+```
+
+<ParamField body="tipoEntidadOrigen" type="string" required>
+  Source entity type: `PROYECTO`, `SOLICITUD`, `CONVOCATORIA`, `MEMORIA`, `INVENCION`, etc.
+</ParamField>
+
+<ParamField body="entidadOrigenRef" type="string" required>
+  Reference ID of the source entity
+</ParamField>
+
+<ParamField body="tipoEntidadDestino" type="string" required>
+  Destination entity type
+</ParamField>
+
+<ParamField body="entidadDestinoRef" type="string" required>
+  Reference ID of the destination entity
+</ParamField>
+
+<ParamField body="tipoRelacion" type="string" required>
+  Relation type: `DERIVED_FROM`, `REQUIRES_ETHICS_REVIEW`, `GENERATES_IP`, `RELATED_TO`, etc.
+</ParamField>
+
+<ParamField body="observaciones" type="string">
+  Optional notes about the relation
+</ParamField>
+
+**Example Request:**
+
+```bash
+curl -X POST "http://localhost:4284/relaciones" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "tipoEntidadOrigen": "PROYECTO",
+    "entidadOrigenRef": "proyecto-789",
+    "tipoEntidadDestino": "INVENCION",
+    "entidadDestinoRef": "invencion-101",
+    "tipoRelacion": "GENERATES_IP",
+    "observaciones": "Patent filed for research outcome"
+  }'
+```
+
+**Response:**
+
+```json
+{
+  "id": 3,
+  "tipoEntidadOrigen": "PROYECTO",
+  "entidadOrigenRef": "proyecto-789",
+  "tipoEntidadDestino": "INVENCION",
+  "entidadDestinoRef": "invencion-101",
+  "tipoRelacion": "GENERATES_IP",
+  "observaciones": "Patent filed for research outcome",
+  "fechaCreacion": "2024-03-05T14:20:00Z"
+}
+```
+
+### Update Relation
+
+Update an existing relation.
+
+```http
+PUT /relaciones/{id}
+```
+
+<ParamField path="id" type="number" required>
+  Relation identifier to update
+</ParamField>
+
+**Example Request:**
+
+```bash
+curl -X PUT "http://localhost:4284/relaciones/3" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "tipoEntidadOrigen": "PROYECTO",
+    "entidadOrigenRef": "proyecto-789",
+    "tipoEntidadDestino": "INVENCION",
+    "entidadDestinoRef": "invencion-101",
+    "tipoRelacion": "GENERATES_IP",
+    "observaciones": "Patent granted for research outcome"
+  }'
+```
+
+### Delete Relation
+
+Delete a relation between entities.
+
+```http
+DELETE /relaciones/{id}
+```
+
+<ParamField path="id" type="number" required>
+  Relation identifier to delete
+</ParamField>
+
+**Example Request:**
+
+```bash
+curl -X DELETE "http://localhost:4284/relaciones/3" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+## Relation Model
+
+<ResponseField name="id" type="number">
+  Unique relation identifier
+</ResponseField>
+
+<ResponseField name="tipoEntidadOrigen" type="string">
+  Source entity type
+</ResponseField>
+
+<ResponseField name="entidadOrigenRef" type="string">
+  Source entity reference ID
+</ResponseField>
+
+<ResponseField name="tipoEntidadDestino" type="string">
+  Destination entity type
+</ResponseField>
+
+<ResponseField name="entidadDestinoRef" type="string">
+  Destination entity reference ID
+</ResponseField>
+
+<ResponseField name="tipoRelacion" type="string">
+  Type of relationship between entities
+</ResponseField>
+
+<ResponseField name="observaciones" type="string">
+  Optional notes or description
+</ResponseField>
+
+<ResponseField name="fechaCreacion" type="string">
+  ISO 8601 timestamp when the relation was created
+</ResponseField>
+
+## Entity Types
+
+The following entity types can be related:
+
+| Type | Module | Description |
+|------|--------|-------------|
+| `PROYECTO` | CSP | Research project |
+| `SOLICITUD` | CSP | Grant application |
+| `CONVOCATORIA` | CSP | Grant call |
+| `MEMORIA` | ETI | Ethics review report |
+| `EVALUACION` | ETI | Ethics evaluation |
+| `INVENCION` | PII | Invention disclosure |
+| `SOLICITUD_PROTECCION` | PII | IP protection request |
+| `PRODUCCION_CIENTIFICA` | PRC | Scientific production item |
+
+## Relation Types
+
+Common relation types include:
+
+| Type | Description |
+|------|-------------|
+| `DERIVED_FROM` | Destination was created from source |
+| `REQUIRES_ETHICS_REVIEW` | Source requires ethics review (destination) |
+| `GENERATES_IP` | Source generated intellectual property (destination) |
+| `RELATED_TO` | Generic bidirectional relation |
+| `PART_OF` | Source is part of destination |
+| `FUNDS` | Source provides funding for destination |
+
+## RSQL Filter Examples
+
+```bash
+# Find all relations from a specific project
+q=tipoEntidadOrigen=='PROYECTO';entidadOrigenRef=='proyecto-123'
+
+# Find ethics review requirements
+q=tipoRelacion=='REQUIRES_ETHICS_REVIEW'
+
+# Find IP generated from projects
+q=tipoEntidadOrigen=='PROYECTO';tipoRelacion=='GENERATES_IP'
+
+# Relations involving a specific entity (as source or destination)
+q=entidadOrigenRef=='proyecto-123',entidadDestinoRef=='proyecto-123'
+```
+
+## Common Use Cases
+
+### Track Project-to-Application Lineage
+
+```bash
+curl -X GET "http://localhost:4284/relaciones?q=tipoEntidadOrigen=='PROYECTO';tipoRelacion=='DERIVED_FROM'" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+### Find All Ethics Reviews for a Project
+
+```bash
+curl -X GET "http://localhost:4284/relaciones?q=entidadOrigenRef=='proyecto-123';tipoRelacion=='REQUIRES_ETHICS_REVIEW'" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+### List IP Generated from a Project
+
+```bash
+curl -X GET "http://localhost:4284/relaciones?q=entidadOrigenRef=='proyecto-123';tipoRelacion=='GENERATES_IP'" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+## Integration with Other Services
+
+The REL service integrates with:
+
+- **CSP Service** - Links projects, applications, and grant calls
+- **ETI Service** - Tracks ethics review requirements
+- **PII Service** - Connects projects to intellectual property
+- **PRC Service** - Associates projects with scientific production
+
+<Info>
+  Relations are automatically created by other services when certain actions occur (e.g., creating a project from an application), but can also be managed manually through these APIs.
+</Info>
+
+## Error Responses
+
+<ResponseField name="status" type="number">
+  HTTP status code
+</ResponseField>
+
+<ResponseField name="error" type="string">
+  Error type
+</ResponseField>
+
+<ResponseField name="message" type="string">
+  Human-readable error message
+</ResponseField>
+
+**Example Error Response:**
+
+```json
+{
+  "status": 400,
+  "error": "Bad Request",
+  "message": "Invalid entity type: INVALID_TYPE"
+}
+```
+
+## Related Documentation
+
+<CardGroup cols={2}>
+  <Card title="CSP Service" icon="folder-open" href="/api/csp-service">
+    Projects and applications
+  </Card>
+  <Card title="ETI Service" icon="shield-check" href="/api/eti-service">
+    Ethics reviews
+  </Card>
+  <Card title="PII Service" icon="lightbulb" href="/api/pii-service">
+    Intellectual property
+  </Card>
+  <Card title="Architecture" icon="sitemap" href="/architecture">
+    System architecture and integration
+  </Card>
+</CardGroup>

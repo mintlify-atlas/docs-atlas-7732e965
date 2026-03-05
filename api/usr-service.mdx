@@ -1,0 +1,270 @@
+---
+title: "USR Service API"
+description: "User and organizational unit management service"
+---
+
+## Overview
+
+The **USR Service** (Usuarios) manages organizational units (Unidades) within the HERCULES SGI system. It provides APIs for managing the organizational structure that is used across all modules for access control and reporting.
+
+<Info>
+  **Base URL**: `http://localhost:4285` (development)  
+  **Service Path**: `/unidades`
+</Info>
+
+## Authentication
+
+All endpoints require a valid OAuth2 access token with appropriate module-specific permissions.
+
+```bash
+Authorization: Bearer <access_token>
+```
+
+## Unidades (Organizational Units)
+
+Organizational units represent the administrative structure of the institution (departments, research groups, administrative offices, etc.).
+
+### List Organizational Units
+
+Retrieve a paginated and filtered list of organizational units.
+
+```http
+GET /unidades
+```
+
+<ParamField query="q" type="string">
+  RSQL filter query for searching units (e.g., `nombre=like='Departamento*'`)
+</ParamField>
+
+<ParamField query="s" type="string">
+  Sorting criteria (e.g., `nombre,asc`)
+</ParamField>
+
+<ParamField query="page" type="number">
+  Page number (0-indexed)
+</ParamField>
+
+<ParamField query="size" type="number">
+  Page size
+</ParamField>
+
+**Required Permissions:**
+
+Any of the following authorities:
+- `CSP-SOL-E` - Edit grant applications
+- `CSP-SOL-V` - View grant applications
+- `CSP-PRO-V` - View projects
+- `CSP-PRO-C` - Create projects
+- `CSP-PRO-E` - Edit projects
+- `CSP-PRO-B` - Delete projects
+- `CSP-PRO-R` - Reactivate projects
+- `CSP-ME-C` - Create economic models
+- `CSP-ME-E` - Edit economic models
+- `ADM-CNF-E` - Edit administration configuration
+
+**Example Request:**
+
+```bash
+curl -X GET "http://localhost:4285/unidades?q=nombre=like='Departamento*'&s=nombre,asc&page=0&size=10" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+**Response:**
+
+```json
+{
+  "content": [
+    {
+      "id": 1,
+      "nombre": "Departamento de Informática",
+      "acronimo": "DI",
+      "descripcion": "Department of Computer Science",
+      "activo": true,
+      "unidadPadreId": null
+    },
+    {
+      "id": 2,
+      "nombre": "Departamento de Matemáticas",
+      "acronimo": "DM",
+      "descripcion": "Department of Mathematics",
+      "activo": true,
+      "unidadPadreId": null
+    }
+  ],
+  "totalElements": 2,
+  "totalPages": 1,
+  "number": 0,
+  "size": 10
+}
+```
+
+### Get Organizational Unit by ID
+
+Retrieve a specific organizational unit by its identifier.
+
+```http
+GET /unidades/{id}
+```
+
+<ParamField path="id" type="number" required>
+  Organizational unit identifier
+</ParamField>
+
+**Example Request:**
+
+```bash
+curl -X GET "http://localhost:4285/unidades/1" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+**Response:**
+
+```json
+{
+  "id": 1,
+  "nombre": "Departamento de Informática",
+  "acronimo": "DI",
+  "descripcion": "Department of Computer Science",
+  "activo": true,
+  "unidadPadreId": null,
+  "responsableRef": "user-ref-123"
+}
+```
+
+## Unidad Model
+
+<ResponseField name="id" type="number">
+  Unique identifier for the organizational unit
+</ResponseField>
+
+<ResponseField name="nombre" type="string">
+  Full name of the unit
+</ResponseField>
+
+<ResponseField name="acronimo" type="string">
+  Short acronym for the unit
+</ResponseField>
+
+<ResponseField name="descripcion" type="string">
+  Detailed description of the unit
+</ResponseField>
+
+<ResponseField name="activo" type="boolean">
+  Whether the unit is currently active
+</ResponseField>
+
+<ResponseField name="unidadPadreId" type="number">
+  Parent unit ID (null for top-level units)
+</ResponseField>
+
+<ResponseField name="responsableRef" type="string">
+  Reference to the person responsible for this unit
+</ResponseField>
+
+## Public Endpoints
+
+The USR service exposes public endpoints (no authentication required) for organizational units.
+
+### Get Public Organizational Units
+
+Retrieve organizational units without authentication.
+
+```http
+GET /public/unidades
+```
+
+<Info>
+  Public endpoints return only active organizational units with basic information.
+</Info>
+
+**Example Request:**
+
+```bash
+curl -X GET "http://localhost:4285/public/unidades"
+```
+
+## RSQL Filter Examples
+
+The USR service supports RSQL queries for flexible filtering:
+
+```bash
+# Find units by name containing text
+q=nombre=like='Departamento*'
+
+# Find active units
+q=activo==true
+
+# Find units under a parent
+q=unidadPadreId==5
+
+# Combine multiple criteria
+q=activo==true;nombre=like='*Investigación*'
+```
+
+## Integration with Other Services
+
+The USR service provides organizational unit information that is used by:
+
+- **CSP Service** - Assigns projects and applications to units
+- **ETI Service** - Ethics committee memberships tied to units
+- **PII Service** - Invention ownership by units
+- **PRC Service** - Research production grouped by units
+
+<Warning>
+  Organizational units are referenced across the system. Deactivating or deleting units may affect existing records.
+</Warning>
+
+## Common Use Cases
+
+### Get All Active Departments
+
+```bash
+curl -X GET "http://localhost:4285/unidades?q=activo==true;nombre=like='Departamento*'" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+### Find Unit by Acronym
+
+```bash
+curl -X GET "http://localhost:4285/unidades?q=acronimo=='DI'" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+### Get Organizational Hierarchy
+
+To retrieve a complete organizational hierarchy, fetch all units and build the tree structure based on `unidadPadreId` relationships.
+
+## Error Responses
+
+<ResponseField name="status" type="number">
+  HTTP status code
+</ResponseField>
+
+<ResponseField name="error" type="string">
+  Error type
+</ResponseField>
+
+<ResponseField name="message" type="string">
+  Human-readable error message
+</ResponseField>
+
+**Example Error Response:**
+
+```json
+{
+  "status": 404,
+  "error": "Not Found",
+  "message": "Unidad with ID 999 not found"
+}
+```
+
+## Related Documentation
+
+<CardGroup cols={2}>
+  <Card title="Administrator Guide" icon="user-shield" href="/guides/administrator">
+    Managing users and organizational units
+  </Card>
+  <Card title="Authorization" icon="shield-check" href="/api/authorization">
+    Role-based access control
+  </Card>
+</CardGroup>
