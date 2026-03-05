@@ -1,0 +1,600 @@
+---
+title: System Architecture
+description: Technical architecture and design of HERCULES SGI
+---
+
+# System Architecture
+
+HERCULES SGI is built on a modern, scalable microservices architecture designed to handle complex research management workflows across multiple Spanish universities.
+
+## Architecture Overview
+
+The system follows a **three-tier architecture** with clear separation of concerns:
+
+<Steps>
+  <Step title="Presentation Layer">
+    Angular 11+ single-page application providing a responsive, Material Design user interface
+  </Step>
+  
+  <Step title="Application Layer">
+    11 independent Spring Boot microservices exposing RESTful APIs
+  </Step>
+  
+  <Step title="Data Layer">
+    PostgreSQL relational databases with schema-per-service isolation
+  </Step>
+</Steps>
+
+<Info>
+All services communicate via REST APIs over HTTP/HTTPS with OAuth2 JWT token authentication.
+</Info>
+
+## High-Level Architecture Diagram
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                      Angular Frontend (SPA)                     │
+│                     http://localhost:4200                       │
+└────────────────────────────┬────────────────────────────────────┘
+                             │ HTTPS + JWT
+                             ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                    Keycloak Auth Server                         │
+│                  OAuth2 / OpenID Connect                        │
+│                     http://localhost:8080                       │
+└────────────────────────────┬────────────────────────────────────┘
+                             │ JWT Tokens
+                             ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                    Backend Microservices                        │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐          │
+│  │   CSP    │ │   ETI    │ │   PII    │ │   PRC    │   ...    │
+│  │  :4281   │ │  :4280   │ │  :4282   │ │  :4283   │          │
+│  └─────┬────┘ └─────┬────┘ └─────┬────┘ └─────┬────┘          │
+│        │            │            │            │                 │
+│        └────────────┴────────────┴────────────┘                 │
+│                             │                                    │
+└─────────────────────────────┼────────────────────────────────────┘
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                    PostgreSQL Databases                         │
+│    [csp_db] [eti_db] [pii_db] [prc_db] [cnf_db] ...           │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+## Microservices Overview
+
+HERCULES SGI consists of **11 independent backend microservices**, each responsible for a specific domain:
+
+<CardGroup cols={2}>
+  <Card title="CSP Service" icon="bullseye-arrow">
+    **Convocatorias, Solicitudes y Proyectos**
+    
+    Port: `4281`
+    
+    Manages the complete lifecycle of funding calls, grant applications, and research projects including contracts and agreements.
+    
+    ```java
+    @SpringBootApplication
+    public class CspApplication {
+      public static void main(String[] args) {
+        TimeZone.setDefault(TimeZone.getTimeZone(ZoneOffset.UTC));
+        SpringApplication.run(CspApplication.class, args);
+      }
+    }
+    ```
+  </Card>
+  
+  <Card title="ETI Service" icon="shield-check">
+    **Ética en la Investigación**
+    
+    Port: `4280`
+    
+    Ethics committee management allowing researchers to submit projects for evaluation and committee members to manage the review process.
+  </Card>
+  
+  <Card title="PII Service" icon="lightbulb">
+    **Propiedad Industrial e Intelectual**
+    
+    Port: `4282`
+    
+    Manages inventions and their industrial/intellectual property protections including patents, trademarks, and copyrights.
+  </Card>
+  
+  <Card title="PRC Service" icon="file-chart-column">
+    **Producción Científica**
+    
+    Port: `4283`
+    
+    Tracks and manages scientific production including publications, conferences, and other research outputs.
+  </Card>
+  
+  <Card title="CNF Service" icon="gear">
+    **Configuración**
+    
+    Port: `4288`
+    
+    Central configuration management service storing system-wide parameters and settings.
+  </Card>
+  
+  <Card title="COM Service" icon="envelope">
+    **Comunicados**
+    
+    Port: `4286`
+    
+    Centralized communication service for managing notifications, emails, and alerts across the system.
+  </Card>
+  
+  <Card title="USR Service" icon="users">
+    **Usuarios**
+    
+    Port: `4289`
+    
+    User and role management service handling permissions and access control.
+  </Card>
+  
+  <Card title="REP Service" icon="file-pdf">
+    **Reporting**
+    
+    Port: `4287`
+    
+    Centralized report generation service for creating PDF and Excel reports across all modules.
+  </Card>
+  
+  <Card title="TP Service" icon="clock">
+    **Tareas Programadas**
+    
+    Port: `4285`
+    
+    Scheduled tasks and batch job execution service for automated processes.
+  </Card>
+  
+  <Card title="REL Service" icon="diagram-project">
+    **Relaciones**
+    
+    Port: `4284`
+    
+    Service managing relationships and cross-references between different modules.
+  </Card>
+  
+  <Card title="EER Service" icon="database">
+    **Entities and External Relations**
+    
+    Port: `4290`
+    
+    Manages external entities and relationships with external systems.
+  </Card>
+</CardGroup>
+
+## Frontend Architecture
+
+The Angular frontend is organized into feature modules corresponding to each backend service:
+
+```typescript
+// Angular Module Structure
+sgi-webapp/
+├── src/app/
+│   ├── core/              // Core services, guards, interceptors
+│   ├── shared/            // Shared components and utilities
+│   ├── module/
+│   │   ├── csp/          // Grants & Projects module
+│   │   ├── eti/          // Ethics module
+│   │   ├── pii/          // IP management module
+│   │   ├── prc/          // Scientific production module
+│   │   ├── pub/          // Public portal module
+│   │   ├── inv/          // Research module
+│   │   ├── adm/          // Administration module
+│   │   └── eer/          // External entities module
+│   ├── home/             // Home dashboard
+│   └── app.module.ts
+```
+
+### Key Frontend Technologies
+
+```json
+{
+  "dependencies": {
+    "@angular/core": "~11.1.1",
+    "@angular/material": "^11.1.1",
+    "@angular/flex-layout": "^11.0.0-beta.33",
+    "@ngx-formly/core": "^5.10.13",
+    "@ngx-translate/core": "^13.0.0",
+    "keycloak-js": "11.0.0",
+    "luxon": "^1.26.0"
+  }
+}
+```
+
+<Info>
+The frontend uses **@ngx-formly** for dynamic form generation and **@ngx-translate** for internationalization (i18n).
+</Info>
+
+## Authentication & Authorization Flow
+
+HERCULES SGI uses **Keycloak** for OAuth2/OpenID Connect authentication:
+
+<Steps>
+  <Step title="User Accesses Frontend">
+    User navigates to `http://localhost:4200`
+  </Step>
+  
+  <Step title="Redirect to Keycloak">
+    Frontend redirects to Keycloak login page:
+    ```
+    http://localhost:8080/auth/realms/sgi/protocol/openid-connect/auth
+    ```
+  </Step>
+  
+  <Step title="User Authentication">
+    User enters credentials in Keycloak login form
+  </Step>
+  
+  <Step title="Token Issuance">
+    Keycloak validates credentials and issues JWT tokens:
+    - **Access Token**: Short-lived token for API access
+    - **Refresh Token**: Long-lived token for obtaining new access tokens
+    - **ID Token**: Contains user identity information
+  </Step>
+  
+  <Step title="Frontend Stores Tokens">
+    Frontend stores tokens securely using keycloak-js adapter:
+    ```javascript
+    import Keycloak from 'keycloak-js';
+    
+    const keycloak = new Keycloak({
+      url: 'http://localhost:8080/auth',
+      realm: 'sgi',
+      clientId: 'front'
+    });
+    ```
+  </Step>
+  
+  <Step title="API Requests with JWT">
+    Frontend includes access token in API requests:
+    ```http
+    GET /api/csp/proyectos HTTP/1.1
+    Host: localhost:4281
+    Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...
+    ```
+  </Step>
+  
+  <Step title="Backend Token Validation">
+    Each microservice validates the JWT token:
+    ```yaml
+    spring:
+      security:
+        oauth2:
+          resourceserver:
+            jwt:
+              jwk-set-uri: http://localhost:8080/auth/realms/sgi/protocol/openid-connect/certs
+              user-name-claim: user_ref_id
+    ```
+  </Step>
+</Steps>
+
+### OAuth2 Configuration
+
+Each service is configured as both an OAuth2 client and resource server:
+
+```yaml
+# application.yml (example from CSP service)
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          # Frontend user login
+          sgi:
+            authorization-grant-type: authorization_code
+            client-id: front
+            client-name: SGI (user login)
+            provider: keycloak
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            scope: "openid,profile"
+          # Service-to-service authentication
+          csp-service:
+            authorization-grant-type: client_credentials
+            client-id: csp-service
+            client-secret: cf693c2b-bdaf-4f98-87db-e7996b917b0a
+            provider: keycloak
+            scope: sgi-cnf,sgi-com,sgi-eti,sgi-sgp,sgi-tp
+        provider:
+          keycloak:
+            issuer-uri: http://localhost:8080/auth/realms/sgi
+            user-name-attribute: user_ref_id
+```
+
+## Database Architecture
+
+Each microservice has its own dedicated PostgreSQL database following the **database-per-service** pattern:
+
+```sql
+-- Database Schema Structure
+CREATE DATABASE csp;  -- CSP Service
+CREATE DATABASE eti;  -- ETI Service
+CREATE DATABASE pii;  -- PII Service
+CREATE DATABASE prc;  -- PRC Service
+CREATE DATABASE cnf;  -- CNF Service
+CREATE DATABASE com;  -- COM Service
+CREATE DATABASE usr;  -- USR Service
+CREATE DATABASE rep;  -- REP Service
+CREATE DATABASE rel;  -- REL Service
+CREATE DATABASE eer;  -- EER Service
+CREATE DATABASE tp;   -- TP Service
+```
+
+### Schema Management with Liquibase
+
+All database schemas are managed using **Liquibase** for version control:
+
+```yaml
+spring:
+  liquibase:
+    enabled: true
+    contexts: dev
+    default-schema: csp
+    liquibase-schema: csp
+    parameters:
+      schemaPrefix: csp.
+```
+
+<Warning>
+Hibernate DDL auto-generation is disabled. All schema changes must go through Liquibase changesets.
+</Warning>
+
+### Database Support
+
+The system supports multiple database engines:
+
+<Tabs>
+  <Tab title="PostgreSQL">
+    **Recommended for production**
+    ```yaml
+    spring:
+      datasource:
+        url: "jdbc:postgresql://postgres:5432/csp"
+        driver-class-name: org.postgresql.Driver
+      jpa:
+        properties:
+          hibernate:
+            dialect: org.hibernate.dialect.PostgreSQL10Dialect
+    ```
+  </Tab>
+  
+  <Tab title="Oracle">
+    **Enterprise alternative**
+    ```yaml
+    spring:
+      datasource:
+        url: jdbc:oracle:thin:@oracle12c:1521/ORCLPDB1.localdomain
+        driver-class-name: oracle.jdbc.OracleDriver
+      jpa:
+        properties:
+          hibernate:
+            dialect: org.hibernate.dialect.Oracle12cDialect
+    ```
+  </Tab>
+  
+  <Tab title="SQL Server">
+    **Microsoft stack integration**
+    ```yaml
+    spring:
+      datasource:
+        url: jdbc:sqlserver://sqlserver:1433;databaseName=SGI
+        driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+      jpa:
+        properties:
+          hibernate:
+            dialect: org.hibernate.dialect.SQLServer2016Dialect
+    ```
+  </Tab>
+  
+  <Tab title="H2 (Dev)">
+    **Development and testing**
+    ```yaml
+    spring:
+      datasource:
+        url: "jdbc:h2:./target/db/csp;MODE=PostgreSQL"
+        driver-class-name: org.h2.Driver
+      jpa:
+        properties:
+          hibernate:
+            dialect: org.hibernate.dialect.H2Dialect
+    ```
+  </Tab>
+</Tabs>
+
+## Service Communication Patterns
+
+### Synchronous REST Communication
+
+Services communicate via synchronous REST API calls:
+
+```yaml
+# CSP Service calling other services
+sgi:
+  rest:
+    api:
+      cnf-url: "http://sgi-cnf-service:8080"    # Configuration
+      com-url: "http://sgi-com-service:8080"    # Communications
+      eti-url: "http://sgi-eti-service:8080"    # Ethics
+      rep-url: "http://sgi-rep-service:8080"    # Reporting
+      tp-url: "http://sgi-tp-service:8080"      # Scheduled Tasks
+```
+
+### Service-to-Service Authentication
+
+Services use **client_credentials** OAuth2 flow for inter-service communication:
+
+```java
+// Example: CSP Service calling CNF Service
+@Service
+public class ConfigService {
+  
+  @Autowired
+  private RestTemplate restTemplate;
+  
+  public ConfigData getConfig(String key) {
+    String url = cnfServiceUrl + "/api/config/" + key;
+    
+    // RestTemplate automatically adds OAuth2 token
+    return restTemplate.getForObject(url, ConfigData.class);
+  }
+}
+```
+
+## External System Integration
+
+HERCULES SGI integrates with external systems through a dedicated ESB (Enterprise Service Bus):
+
+```yaml
+sgi:
+  rest:
+    api:
+      sgdoc-url: "http://sgi-esb:8080/sgdoc"   # Document Management
+      sgp-url: "http://sgi-esb:8080/sgp"       # Personnel Management
+      sgemp-url: "http://sgi-esb:8080/sgemp"   # Enterprise Management
+```
+
+<Info>
+The ESB layer provides abstraction and transformation for external system APIs, allowing HERCULES SGI to remain independent of specific vendor implementations.
+</Info>
+
+## Deployment Architecture
+
+### Container-Based Deployment
+
+Each service is containerized using Docker:
+
+```dockerfile
+# Multi-stage build pattern
+FROM eclipse-temurin:21-jre-alpine
+
+EXPOSE 8080
+
+# Layered JAR approach for faster builds
+COPY target/dependency/BOOT-INF/lib /app/lib
+COPY target/dependency/META-INF /app/META-INF
+COPY target/dependency/BOOT-INF/classes /app
+
+ENTRYPOINT java -Duser.timezone=UTC \
+                -Djava.security.egd=file:/dev/./urandom \
+                -cp "app:app/lib/*" \
+                org.crue.hercules.sgi.csp.CspApplication
+```
+
+### Production Deployment Topology
+
+```
+                    ┌─────────────┐
+                    │ Load Balancer│
+                    └──────┬──────┘
+                           │
+        ┌──────────────────┼──────────────────┐
+        ▼                  ▼                  ▼
+   ┌────────┐        ┌────────┐        ┌────────┐
+   │Frontend│        │Frontend│        │Frontend│
+   │Instance│        │Instance│        │Instance│
+   └────────┘        └────────┘        └────────┘
+        │                  │                  │
+        └──────────────────┼──────────────────┘
+                           │
+                    ┌──────▼──────┐
+                    │   Keycloak  │
+                    │   Cluster   │
+                    └──────┬──────┘
+                           │
+        ┌──────────────────┼──────────────────┐
+        ▼                  ▼                  ▼
+   [CSP x3]           [ETI x2]           [PII x2]  ...
+        │                  │                  │
+        └──────────────────┼──────────────────┘
+                           │
+                    ┌──────▼──────┐
+                    │  PostgreSQL │
+                    │  Primary +  │
+                    │  Replicas   │
+                    └─────────────┘
+```
+
+## Monitoring & Observability
+
+Each service exposes Spring Boot Actuator endpoints:
+
+```yaml
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+```
+
+**Available Endpoints**:
+- `/actuator/health` - Service health status
+- `/actuator/info` - Service build information
+- `/actuator/metrics` - Performance metrics
+- `/actuator/prometheus` - Prometheus-compatible metrics
+
+## Technology Stack Summary
+
+<CardGroup cols={2}>
+  <Card title="Backend Framework">
+    - Spring Boot 2.4+
+    - Spring Data JPA
+    - Spring Security OAuth2
+    - Hibernate ORM
+    - Liquibase
+  </Card>
+  
+  <Card title="Frontend Framework">
+    - Angular 11+
+    - Angular Material
+    - RxJS 6.5+
+    - Keycloak JS Adapter
+    - Luxon (DateTime)
+  </Card>
+  
+  <Card title="Data & Persistence">
+    - PostgreSQL 12+
+    - Oracle 12c+ (optional)
+    - SQL Server 2016+ (optional)
+    - H2 (development)
+  </Card>
+  
+  <Card title="Security & Auth">
+    - Keycloak 11.0.0
+    - OAuth2 / OpenID Connect
+    - JWT Tokens
+    - Spring Security
+  </Card>
+</CardGroup>
+
+## Best Practices
+
+<Note>
+**Microservice Independence**: Each service can be developed, deployed, and scaled independently.
+
+**Database Isolation**: No direct database access between services; all communication via APIs.
+
+**Configuration Management**: Centralized configuration with profiles for different environments.
+
+**Security First**: All APIs protected with OAuth2; no anonymous access.
+
+**Schema Versioning**: All database changes tracked in Liquibase changesets.
+</Note>
+
+## Next Steps
+
+<CardGroup cols={3}>
+  <Card title="Configuration" icon="gear" href="/deployment/configuration">
+    Configure services for your environment
+  </Card>
+  
+  <Card title="API Reference" icon="code" href="/api/csp-service">
+    Explore the REST API endpoints
+  </Card>
+  
+  <Card title="Deployment" icon="rocket" href="/deployment/installation">
+    Deploy HERCULES SGI
+  </Card>
+</CardGroup>

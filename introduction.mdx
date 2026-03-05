@@ -1,0 +1,157 @@
+---
+title: Introduction to HERCULES SGI
+description: Comprehensive Research Management System for Spanish Universities
+---
+
+# Introduction to HERCULES SGI
+
+HERCULES SGI (Sistema de Gestión de Investigación) is a comprehensive, enterprise-grade Research Management System designed specifically for the Spanish University System (Sistema Universitario Español - SUE). Built as part of the HERCULES project, it provides a complete platform for managing all aspects of university research operations.
+
+<Note>
+HERCULES SGI is based on open semantic data standards, offering a global view of research data across the Spanish university system to improve management, analysis, and synergies between universities and the public.
+</Note>
+
+## What is HERCULES SGI?
+
+HERCULES SGI is a full-stack, microservices-based SaaS application that manages the complete research lifecycle from grant applications to intellectual property protection. The system is designed to:
+
+- Provide joint exploitation of research information across universities
+- Unify criteria for obtaining information with greater guarantees of accurate interpretation
+- Establish synergies and collaborations between universities and research groups
+- Increase transparency in university research management
+- Facilitate technology transfer and university-enterprise collaboration
+- Enable knowledge of scientific production for researchers and society
+- Facilitate integration of the Standardized CV (Currículum Vitae Normalizado - CVN)
+- Provide statistical data relevant to transparency in public service
+
+## Key Features
+
+<CardGroup cols={2}>
+  <Card title="Grant Management" icon="bullseye-arrow">
+    Complete lifecycle management of research grants, applications, and funding opportunities
+  </Card>
+  
+  <Card title="Project Tracking" icon="diagram-project">
+    Comprehensive project management including contracts, agreements, and collaborations
+  </Card>
+  
+  <Card title="Ethics Review" icon="shield-check">
+    Integrated ethics committee workflows for research project evaluation
+  </Card>
+  
+  <Card title="IP Management" icon="lightbulb">
+    Industrial and intellectual property protection for inventions and innovations
+  </Card>
+  
+  <Card title="Scientific Production" icon="file-chart-column">
+    Track and manage research outputs, publications, and scientific contributions
+  </Card>
+  
+  <Card title="Reporting & Analytics" icon="chart-line">
+    Centralized reporting system with comprehensive analytics and insights
+  </Card>
+</CardGroup>
+
+## Target Users
+
+HERCULES SGI serves three primary user groups:
+
+### Researchers (Personal Investigador)
+- Submit project proposals and ethics review applications
+- Manage research projects and collaborations
+- Track publications and scientific production
+- Manage intellectual property disclosures
+
+### Research Administrators (Gestores de Investigación)
+- Process grant applications and project proposals
+- Manage funding calls and deadlines
+- Coordinate ethics committee reviews
+- Generate reports and compliance documentation
+
+### Research Managers (Responsables de Investigación)
+- Monitor institutional research portfolio
+- Analyze research performance and metrics
+- Make strategic decisions based on comprehensive data
+- Ensure compliance with regulations and policies
+
+## System Components
+
+HERCULES SGI is built on a modern microservices architecture:
+
+<Info>
+**Backend**: 11 Java/Spring Boot microservices providing RESTful APIs
+
+**Frontend**: Angular 11+ single-page application with Material Design
+
+**Authentication**: Keycloak OAuth2/OpenID Connect integration
+
+**Database**: PostgreSQL with support for Oracle and SQL Server
+
+**Semantic Layer**: Integration with the HERCULES semantic architecture
+</Info>
+
+### Core Technologies
+
+```xml
+<!-- Backend Stack -->
+<dependency>
+  <groupId>org.springframework.boot</groupId>
+  <artifactId>spring-boot-starter-web</artifactId>
+</dependency>
+<dependency>
+  <groupId>org.springframework.boot</groupId>
+  <artifactId>spring-boot-starter-data-jpa</artifactId>
+</dependency>
+<dependency>
+  <groupId>org.springframework.boot</groupId>
+  <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+</dependency>
+```
+
+```json
+// Frontend Stack
+{
+  "@angular/core": "~11.1.1",
+  "@angular/material": "^11.1.1",
+  "keycloak-js": "11.0.0",
+  "@ngx-translate/core": "^13.0.0"
+}
+```
+
+## Integration Capabilities
+
+The system integrates with multiple external systems:
+
+- **SGDoc**: Document management system integration
+- **SGP**: Personnel management system integration  
+- **SGEmp**: Enterprise/organization management integration
+- **CVN**: Standardized CV (Currículum Vitae Normalizado) import/export
+- **External Research Databases**: Semantic data exchange with other institutions
+
+## Open Source & Licensing
+
+HERCULES SGI is released under the **GNU General Public License v3.0**, ensuring it remains free and open for all Spanish universities and research institutions.
+
+<Warning>
+This system was developed as part of a publicly funded project and is designed to surpass currently available commercial solutions in the market.
+</Warning>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Quick Start" icon="rocket" href="/quickstart">
+    Get HERCULES SGI up and running in minutes
+  </Card>
+  
+  <Card title="Architecture" icon="sitemap" href="/architecture">
+    Understand the system architecture and components
+  </Card>
+  
+  <Card title="Configuration" icon="gear" href="/deployment/configuration">
+    Configure the system for your institution
+  </Card>
+  
+  <Card title="API Reference" icon="code" href="/api/csp-service">
+    Explore the REST API documentation
+  </Card>
+</CardGroup>

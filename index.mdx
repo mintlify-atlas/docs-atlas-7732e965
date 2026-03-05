@@ -1,97 +1,154 @@
 ---
-title: "Introduction"
-description: "Welcome to the new home for your documentation"
+title: "HERCULES SGI"
+description: "Comprehensive Research Management System for Spanish Universities"
 ---
 
-## Setting up
+<div className="relative bg-gradient-to-br from-[#2563eb] via-[#1d4ed8] to-[#1e40af] dark:from-[#1e3a8a] dark:via-[#1e40af] dark:to-[#1d4ed8] overflow-hidden">
+  <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMzLjMxIDAgNiAyLjY5IDYgNnMtMi42OSA2LTYgNi02LTIuNjktNi02IDIuNjktNiA2LTZ6TTI0IDQyYzMuMzEgMCA2IDIuNjkgNiA2cy0yLjY5IDYtNiA2LTYtMi42OS02LTYgMi42OS02IDYtNnoiIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iLjAzIi8+PC9nPjwvc3ZnPg==')] opacity-20"></div>
+  
+  <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 lg:py-24">
+    <div className="text-center">
+      <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6">
+        HERCULES SGI Documentation
+      </h1>
+      <p className="text-lg sm:text-xl text-blue-100 max-w-3xl mx-auto mb-8">
+        Learn how to deploy, configure, and use the comprehensive Research Management System designed for Spanish universities
+      </p>
+      
+      <div className="flex flex-col sm:flex-row gap-4 justify-center items-center flex-wrap">
+        <a 
+          href="/quickstart" 
+          className="inline-flex items-center px-6 py-3 rounded-lg bg-white text-[#2563eb] font-semibold hover:bg-blue-50 transition-colors no-underline"
+        >
+          Get Started
+          <svg className="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+          </svg>
+        </a>
+        <a 
+          href="/architecture" 
+          className="inline-flex items-center px-6 py-3 rounded-lg border-2 border-white/30 bg-white/10 text-white font-semibold hover:bg-white/20 transition-colors no-underline"
+        >
+          View Architecture
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
 
-Get your documentation site up and running in minutes.
+<div className="mt-16 mb-16 max-w-5xl mx-auto px-6">
+  <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Quick Start</h2>
+  <p className="text-base text-gray-600 dark:text-gray-400 mb-8">Get HERCULES SGI up and running in your institution</p>
+  
+  <Steps>
+    <Step title="Review System Requirements">
+      Check the prerequisites for deploying HERCULES SGI, including Java 11+, PostgreSQL, and Keycloak authentication server.
+      
+      See the [Installation Guide](/deployment/installation) for detailed requirements.
+    </Step>
+    
+    <Step title="Deploy Backend Services">
+      Deploy the microservices architecture using Docker containers or build from source with Maven.
+      
+      ```bash
+      # Clone the repository
+      git clone https://github.com/herculesproject/sgi.git
+      cd sgi
+      
+      # Build all services
+      mvn clean install
+      ```
+      
+      Each service runs independently and communicates via REST APIs.
+    </Step>
+    
+    <Step title="Configure Authentication">
+      Set up Keycloak with the SGI realm configuration to enable user authentication and role-based access control.
+      
+      Import the provided realm configuration from `sgi-auth/realm/sgi-realm.json`.
+      
+      Learn more in the [Authentication Guide](/deployment/authentication).
+    </Step>
+    
+    <Step title="Access the Web Interface">
+      Navigate to the SGI web application and log in with your configured credentials to start managing research activities.
+      
+      Explore the [User Guides](/guides/researcher) for role-specific workflows.
+    </Step>
+  </Steps>
+</div>
 
-<Card
-  title="Start here"
-  icon="rocket"
-  href="/quickstart"
-  horizontal
->
-  Follow our three step quickstart guide.
-</Card>
+<div className="mt-16 mb-16 max-w-5xl mx-auto px-6">
+  <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Core Modules</h2>
+  <p className="text-base text-gray-600 dark:text-gray-400 mb-8">Explore the key modules that power research management</p>
+  
+  <CardGroup cols={3}>
+    <Card title="CSP Module" icon="folder-open" href="/modules/csp">
+      Manage grant calls, applications, and research projects throughout their lifecycle
+    </Card>
+    <Card title="ETI Module" icon="shield-check" href="/modules/eti">
+      Handle ethics reviews, committee management, and evaluation workflows
+    </Card>
+    <Card title="PII Module" icon="lightbulb" href="/modules/pii">
+      Track inventions and manage intellectual property protection requests
+    </Card>
+    <Card title="PRC Module" icon="chart-line" href="/modules/prc">
+      Monitor and analyze scientific production and research output
+    </Card>
+    <Card title="EER Module" icon="building" href="/modules/eer">
+      Manage relationships with external research entities and partners
+    </Card>
+    <Card title="Reporting" icon="file-chart-column" href="/api/rep-service">
+      Generate comprehensive reports across all research activities
+    </Card>
+  </CardGroup>
+</div>
 
-## Make it yours
+<div className="mt-16 mb-16 max-w-5xl mx-auto px-6">
+  <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">User Guides</h2>
+  <p className="text-base text-gray-600 dark:text-gray-400 mb-8">Role-based guides for different system users</p>
+  
+  <CardGroup cols={3}>
+    <Card title="Researcher Guide" icon="user-graduate" href="/guides/researcher">
+      Learn how to submit applications, manage projects, and track your research activities
+    </Card>
+    <Card title="Administrator Guide" icon="user-shield" href="/guides/administrator">
+      Configure the system, manage users, and maintain institutional settings
+    </Card>
+    <Card title="Manager Guide" icon="user-tie" href="/guides/manager">
+      Oversee research operations, approve requests, and generate institutional reports
+    </Card>
+  </CardGroup>
+</div>
 
-Design a docs site that looks great and empowers your users.
+<div className="mt-16 mb-16 max-w-5xl mx-auto px-6">
+  <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">API Reference</h2>
+  <p className="text-base text-gray-600 dark:text-gray-400 mb-8">Integrate with HERCULES SGI through REST APIs</p>
+  
+  <CardGroup cols={2}>
+    <Card title="Service APIs" icon="code" href="/api/csp-service">
+      Explore the REST endpoints for all backend microservices
+    </Card>
+    <Card title="Authentication" icon="key" href="/api/authentication">
+      Learn how to authenticate and authorize API requests using Keycloak
+    </Card>
+  </CardGroup>
+</div>
 
-<Columns cols={2}>
-  <Card
-    title="Edit locally"
-    icon="pen-to-square"
-    href="/development"
-  >
-    Edit your docs locally and preview them in real time.
-  </Card>
-  <Card
-    title="Customize your site"
-    icon="palette"
-    href="/essentials/settings"
-  >
-    Customize the design and colors of your site to match your brand.
-  </Card>
-    <Card
-    title="Set up navigation"
-    icon="map"
-    href="/essentials/navigation"
-  >
-    Organize your docs to help users find what they need and succeed with your product.
-  </Card>
-  <Card
-    title="API documentation"
-    icon="terminal"
-    href="/api-reference/introduction"
-  >
-    Auto-generate API documentation from OpenAPI specifications.
-  </Card>
-</Columns>
-
-## Create beautiful pages
-
-Everything you need to create world-class documentation.
-
-<Columns cols={2}>
-  <Card
-    title="Write with MDX"
-    icon="pen-fancy"
-    href="/essentials/markdown"
-  >
-    Use MDX to style your docs pages.
-  </Card>
-  <Card
-    title="Code samples"
-    icon="code"
-    href="/essentials/code"
-  >
-    Add sample code to demonstrate how to use your product.
-  </Card>
-  <Card
-    title="Images"
-    icon="image"
-    href="/essentials/images"
-  >
-    Display images and other media.
-  </Card>
-  <Card
-    title="Reusable snippets"
-    icon="recycle"
-    href="/essentials/reusable-snippets"
-  >
-    Write once and reuse across your docs.
-  </Card>
-</Columns>
-
-## Need inspiration?
-
-<Card
-  title="See complete examples"
-  icon="stars"
-  href="https://mintlify.com/customers"
->
-  Browse our showcase of exceptional documentation sites.
-</Card>
+<div className="mt-16 mb-16 max-w-5xl mx-auto px-6">
+  <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-[#1a1d27] dark:to-[#242838] border border-gray-200 dark:border-[#27272a] rounded-2xl p-8 text-center">
+    <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Ready to Deploy?</h2>
+    <p className="text-lg text-gray-600 dark:text-gray-400 mb-6 max-w-2xl mx-auto">
+      Follow our comprehensive deployment guide to set up HERCULES SGI in your institution
+    </p>
+    <a 
+      href="/deployment/installation" 
+      className="inline-flex items-center px-6 py-3 rounded-lg bg-[#2563eb] text-white font-semibold hover:bg-[#1d4ed8] transition-colors no-underline"
+    >
+      View Installation Guide
+      <svg className="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+      </svg>
+    </a>
+  </div>
+</div>

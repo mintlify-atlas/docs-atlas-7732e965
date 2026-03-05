@@ -1,0 +1,435 @@
+---
+title: 'COM Service API'
+description: 'Communications Service - Email and Notifications'
+icon: 'envelope'
+---
+
+## Overview
+
+The COM (Communications) service manages email and notification delivery for the HERCULES SGI system:
+
+- **Email Management** - Create, send, and track emails
+- **Template Support** - Email templates with parameter substitution
+- **Attachments** - Support for file attachments
+- **Recipients** - Multiple recipient types (To, CC, BCC)
+- **Status Tracking** - Monitor email delivery status
+
+Base URL: `/emails`
+
+## Authentication
+
+<Note>
+The COM service is primarily used by other SGI services for sending notifications. Direct access may be restricted to system administrators and authorized applications.
+</Note>
+
+---
+
+## Emails
+
+### List Emails
+
+<CodeGroup>
+```bash GET /emails
+curl -X GET "https://api.example.com/emails?q=subject=like='Research%'" \
+  -H "Authorization: Bearer {token}"
+```
+</CodeGroup>
+
+Returns a paginated list of emails.
+
+<ParamField query="q" type="string">
+  RSQL filter query (e.g., `subject=like='Grant%';sent==true`)
+</ParamField>
+
+<ParamField query="s" type="string">
+  Sort specification (e.g., `createdDate,desc`)
+</ParamField>
+
+<ParamField query="page" type="integer" default="0">
+  Page number (zero-based)
+</ParamField>
+
+<ParamField query="size" type="integer" default="10">
+  Items per page
+</ParamField>
+
+<ResponseField name="content" type="array">
+  Array of Email objects
+  <Expandable title="Email object">
+    <ResponseField name="id" type="long">Email identifier</ResponseField>
+    <ResponseField name="subject" type="string">Email subject</ResponseField>
+    <ResponseField name="content" type="string">Email body (HTML or plain text)</ResponseField>
+    <ResponseField name="contentType" type="string">Content type (HTML, TEXT)</ResponseField>
+    <ResponseField name="sent" type="boolean">Whether email has been sent</ResponseField>
+    <ResponseField name="createdDate" type="datetime">Creation timestamp</ResponseField>
+    <ResponseField name="sentDate" type="datetime">Sent timestamp</ResponseField>
+    <ResponseField name="recipients" type="array">List of recipients</ResponseField>
+    <ResponseField name="attachments" type="array">List of attachments</ResponseField>
+    <ResponseField name="params" type="array">Template parameters</ResponseField>
+  </Expandable>
+</ResponseField>
+
+### Get Email by ID
+
+<CodeGroup>
+```bash GET /emails/{id}
+curl -X GET "https://api.example.com/emails/123" \
+  -H "Authorization: Bearer {token}"
+```
+</CodeGroup>
+
+<ParamField path="id" type="long" required>
+  Email identifier
+</ParamField>
+
+Returns complete email details including recipients, attachments, and parameters.
+
+### Create Email
+
+<CodeGroup>
+```bash POST /emails
+curl -X POST "https://api.example.com/emails" \
+  -H "Authorization: Bearer {token}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "subject": "Grant Application Approved",
+    "content": "<p>Your application has been approved.</p>",
+    "contentType": "HTML",
+    "recipients": [
+      {
+        "address": "researcher@university.edu",
+        "name": "Dr. Jane Smith",
+        "type": "TO"
+      }
+    ],
+    "attachments": [],
+    "params": [
+      {
+        "name": "APPLICATION_ID",
+        "value": "APP-2024-001"
+      }
+    ]
+  }'
+```
+</CodeGroup>
+
+**Request Body:**
+
+<ParamField body="subject" type="string" required>
+  Email subject line
+</ParamField>
+
+<ParamField body="content" type="string" required>
+  Email body content (HTML or plain text)
+</ParamField>
+
+<ParamField body="contentType" type="string" default="HTML">
+  Content type: `HTML` or `TEXT`
+</ParamField>
+
+<ParamField body="recipients" type="array" required>
+  Array of recipient objects
+  <Expandable title="Recipient object">
+    <ParamField body="address" type="string" required>Email address</ParamField>
+    <ParamField body="name" type="string">Recipient name</ParamField>
+    <ParamField body="type" type="string" required>Recipient type: `TO`, `CC`, or `BCC`</ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField body="attachments" type="array">
+  Array of attachment objects
+  <Expandable title="Attachment object">
+    <ParamField body="name" type="string" required>File name</ParamField>
+    <ParamField body="content" type="string" required>Base64-encoded file content</ParamField>
+    <ParamField body="contentType" type="string">MIME type (e.g., `application/pdf`)</ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField body="params" type="array">
+  Template parameters for variable substitution
+  <Expandable title="Parameter object">
+    <ParamField body="name" type="string" required>Parameter name</ParamField>
+    <ParamField body="value" type="string" required>Parameter value</ParamField>
+  </Expandable>
+</ParamField>
+
+**Response:**
+
+Returns the created Email object with HTTP 201 status.
+
+### Update Email
+
+<CodeGroup>
+```bash PUT /emails/{id}
+curl -X PUT "https://api.example.com/emails/123" \
+  -H "Authorization: Bearer {token}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "subject": "Updated Subject",
+    "content": "Updated content",
+    "recipients": [...]
+  }'
+```
+</CodeGroup>
+
+Updates an existing email. **Note:** Only unsent emails can be updated.
+
+<ParamField path="id" type="long" required>
+  Email identifier
+</ParamField>
+
+### Delete Email
+
+<CodeGroup>
+```bash DELETE /emails/{id}
+curl -X DELETE "https://api.example.com/emails/123" \
+  -H "Authorization: Bearer {token}"
+```
+</CodeGroup>
+
+Deletes an email record.
+
+<ParamField path="id" type="long" required>
+  Email identifier
+</ParamField>
+
+**Response:** HTTP 204 No Content
+
+### Send Email
+
+<CodeGroup>
+```bash GET /emails/{id}/send
+curl -X GET "https://api.example.com/emails/123/send" \
+  -H "Authorization: Bearer {token}"
+```
+</CodeGroup>
+
+Sends a previously created email.
+
+<ParamField path="id" type="long" required>
+  Email identifier
+</ParamField>
+
+**Response:**
+
+<ResponseField name="status" type="string">
+  Sending status: `SUCCESS`, `FAILED`, or `PENDING`
+</ResponseField>
+
+<ResponseField name="message" type="string">
+  Status message or error description
+</ResponseField>
+
+<ResponseField name="timestamp" type="datetime">
+  Timestamp of the send operation
+</ResponseField>
+
+<CodeGroup>
+```json Success Response
+{
+  "status": "SUCCESS",
+  "message": "Email sent successfully",
+  "timestamp": "2024-03-05T10:30:00Z"
+}
+```
+
+```json Error Response
+{
+  "status": "FAILED",
+  "message": "SMTP server connection timeout",
+  "timestamp": "2024-03-05T10:30:00Z"
+}
+```
+</CodeGroup>
+
+---
+
+## Email Templates
+
+The COM service supports template-based emails with parameter substitution.
+
+### Using Templates
+
+Templates are managed separately through the `EmailTplController`. To use a template:
+
+1. Create an email referencing a template
+2. Provide parameters that match template variables
+3. The service will substitute parameters in the template content
+
+<CodeGroup>
+```json Template Email Example
+{
+  "templateRef": "GRANT_APPROVAL",
+  "recipients": [
+    {
+      "address": "researcher@university.edu",
+      "type": "TO"
+    }
+  ],
+  "params": [
+    {
+      "name": "RESEARCHER_NAME",
+      "value": "Dr. Jane Smith"
+    },
+    {
+      "name": "GRANT_TITLE",
+      "value": "Novel Cancer Research"
+    },
+    {
+      "name": "AMOUNT",
+      "value": "€50,000"
+    }
+  ]
+}
+```
+</CodeGroup>
+
+---
+
+## Common Use Cases
+
+### Sending Notification Email
+
+<CodeGroup>
+```javascript JavaScript Example
+const email = {
+  subject: 'Application Status Update',
+  content: '<p>Your application status has changed to: <strong>Approved</strong></p>',
+  contentType: 'HTML',
+  recipients: [
+    {
+      address: 'applicant@university.edu',
+      name: 'John Doe',
+      type: 'TO'
+    }
+  ],
+  params: [
+    { name: 'APPLICATION_ID', value: 'APP-2024-001' },
+    { name: 'NEW_STATUS', value: 'Approved' }
+  ]
+};
+
+// Create email
+const response = await fetch('https://api.example.com/emails', {
+  method: 'POST',
+  headers: {
+    'Authorization': `Bearer ${token}`,
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify(email)
+});
+
+const created = await response.json();
+
+// Send email
+const sendResponse = await fetch(`https://api.example.com/emails/${created.id}/send`, {
+  headers: { 'Authorization': `Bearer ${token}` }
+});
+
+const status = await sendResponse.json();
+console.log('Send status:', status);
+```
+</CodeGroup>
+
+### Sending Email with Attachment
+
+<CodeGroup>
+```python Python Example
+import base64
+import requests
+
+# Read PDF file and encode
+with open('document.pdf', 'rb') as f:
+    pdf_content = base64.b64encode(f.read()).decode('utf-8')
+
+email = {
+    'subject': 'Grant Agreement Document',
+    'content': 'Please find attached your grant agreement.',
+    'contentType': 'TEXT',
+    'recipients': [
+        {
+            'address': 'recipient@university.edu',
+            'type': 'TO'
+        }
+    ],
+    'attachments': [
+        {
+            'name': 'grant-agreement.pdf',
+            'content': pdf_content,
+            'contentType': 'application/pdf'
+        }
+    ]
+}
+
+# Create and send
+response = requests.post(
+    'https://api.example.com/emails',
+    json=email,
+    headers={'Authorization': f'Bearer {token}'}
+)
+
+email_id = response.json()['id']
+
+# Send it
+send_response = requests.get(
+    f'https://api.example.com/emails/{email_id}/send',
+    headers={'Authorization': f'Bearer {token}'}
+)
+
+print(send_response.json())
+```
+</CodeGroup>
+
+---
+
+## Error Handling
+
+### Common Error Responses
+
+<ResponseField name="400 Bad Request">
+  Invalid email data (missing required fields, invalid email addresses)
+</ResponseField>
+
+<ResponseField name="404 Not Found">
+  Email with specified ID does not exist
+</ResponseField>
+
+<ResponseField name="409 Conflict">
+  Cannot modify email that has already been sent
+</ResponseField>
+
+<ResponseField name="500 Internal Server Error">
+  Email sending failed due to SMTP server error
+</ResponseField>
+
+### Validation Rules
+
+- Email addresses must be valid format
+- At least one `TO` recipient is required
+- Subject cannot be empty
+- Content cannot be empty
+- Attachment content must be valid Base64
+- Template parameters must match template requirements
+
+---
+
+## Best Practices
+
+<Note>
+1. **Test emails first** - Use test email addresses during development
+2. **Validate recipients** - Ensure email addresses are valid before creating emails
+3. **Use templates** - Leverage templates for consistent formatting and easier maintenance
+4. **Monitor status** - Check send status after sending to handle failures
+5. **Handle attachments carefully** - Large attachments may cause timeouts or failures
+6. **Limit recipients** - Avoid sending to too many recipients in a single email
+</Note>
+
+## Configuration
+
+The COM service requires SMTP server configuration (typically done by system administrators):
+
+- SMTP host and port
+- Authentication credentials
+- SSL/TLS settings
+- Default sender address
+- Email templates location

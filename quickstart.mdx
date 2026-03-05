@@ -1,80 +1,400 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: Quick Start Guide
+description: Get HERCULES SGI running in your environment
 ---
 
-## Get started in three steps
+# Quick Start Guide
 
-Get your documentation site running locally and make your first customization.
-
-### Step 1: Set up your local environment
-
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
-    
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
-    
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
-
-### Step 2: Deploy your changes
-
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
-    
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
-
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
-
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
-
-### Step 3: Go live
-
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
-
-## Next steps
-
-Now that you have your docs running, explore these key features:
-
-<CardGroup cols={2}>
-
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
-
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
-
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
-</CardGroup>
+This guide will help you get HERCULES SGI up and running quickly. Follow these steps to deploy a local development or production instance.
 
 <Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
+This quick start focuses on a Docker-based deployment for simplicity. For production deployments, refer to the deployment guide.
 </Note>
+
+## Prerequisites
+
+Before you begin, ensure you have the following installed:
+
+### Required Software
+
+<Steps>
+  <Step title="Java Development Kit 11+">
+    HERCULES SGI backend services require Java 11 or later. We recommend using Eclipse Temurin (formerly AdoptOpenJDK).
+    
+    ```bash
+    # Verify Java installation
+    java -version
+    # Should show version 11 or higher
+    ```
+    
+    <Info>The production Docker images use Eclipse Temurin 21 JRE Alpine for optimal performance.</Info>
+  </Step>
+  
+  <Step title="PostgreSQL 12+">
+    The system uses PostgreSQL as the primary database. Oracle and SQL Server are also supported.
+    
+    ```bash
+    # Install PostgreSQL (example for Ubuntu/Debian)
+    sudo apt-get install postgresql-12
+    ```
+  </Step>
+  
+  <Step title="Keycloak 11.0.0">
+    Authentication and authorization are handled by Keycloak.
+    
+    ```bash
+    # Download Keycloak 11.0.0
+    wget https://github.com/keycloak/keycloak/releases/download/11.0.0/keycloak-11.0.0.tar.gz
+    tar -xzf keycloak-11.0.0.tar.gz
+    ```
+  </Step>
+  
+  <Step title="Node.js 12+ and npm">
+    Required for building the Angular frontend application.
+    
+    ```bash
+    # Verify Node.js installation
+    node --version  # Should be v12 or higher
+    npm --version
+    ```
+  </Step>
+  
+  <Step title="Maven 3.6+">
+    Required for building the Java backend services.
+    
+    ```bash
+    # Verify Maven installation
+    mvn --version  # Should be 3.6 or higher
+    ```
+  </Step>
+</Steps>
+
+## Quick Setup with Docker
+
+<Warning>
+Make sure Docker and Docker Compose are installed and running on your system.
+</Warning>
+
+### Step 1: Clone the Repository
+
+```bash
+# Clone the HERCULES SGI repository
+git clone https://github.com/HerculesCRUE/SGI.git
+cd SGI
+```
+
+### Step 2: Configure Keycloak
+
+<Steps>
+  <Step title="Start Keycloak">
+    ```bash
+    # Navigate to Keycloak directory
+    cd keycloak-11.0.0/bin
+    
+    # Start Keycloak in standalone mode
+    ./standalone.sh
+    ```
+  </Step>
+  
+  <Step title="Create SGI Realm">
+    1. Access Keycloak Admin Console at `http://localhost:8080/auth`
+    2. Create a new realm named `sgi`
+    3. Configure the OAuth2 clients as specified in the configuration files
+  </Step>
+  
+  <Step title="Configure OAuth2 Clients">
+    Create the following clients in the `sgi` realm:
+    
+    **Frontend Client (`front`)**:
+    ```yaml
+    Client ID: front
+    Client Protocol: openid-connect
+    Access Type: public
+    Valid Redirect URIs: http://localhost:4200/*
+    ```
+    
+    **Service Clients** (for each microservice):
+    ```yaml
+    Client ID: csp-service
+    Client Protocol: openid-connect
+    Access Type: confidential
+    Service Accounts Enabled: true
+    Authorization Enabled: true
+    ```
+  </Step>
+</Steps>
+
+### Step 3: Build Backend Services
+
+```bash
+# Build all backend services
+mvn clean install -DskipTests
+
+# Or build individual services
+cd sgi-csp-service
+mvn clean package -DskipTests
+```
+
+<Info>
+The build process creates executable JAR files in each service's `target/` directory.
+</Info>
+
+### Step 4: Prepare Docker Images
+
+```bash
+# Extract dependencies for Docker layering (example for CSP service)
+cd sgi-csp-service
+mkdir -p target/dependency
+cd target/dependency
+jar -xf ../*.jar
+
+# Build Docker image
+cd ../..
+docker build -t sgi-csp-service:latest .
+```
+
+Each service includes a Dockerfile:
+
+```dockerfile
+# Example: sgi-csp-service/Dockerfile
+FROM eclipse-temurin:21-jre-alpine
+
+EXPOSE 8080
+
+COPY target/dependency/BOOT-INF/lib /app/lib
+COPY target/dependency/META-INF /app/META-INF
+COPY target/dependency/BOOT-INF/classes /app
+
+ENTRYPOINT java -Duser.timezone=UTC -Djava.security.egd=file:/dev/./urandom -cp "app:app/lib/*" org.crue.hercules.sgi.csp.CspApplication
+```
+
+### Step 5: Configure Database
+
+<Steps>
+  <Step title="Create Databases">
+    Create separate databases for each service:
+    
+    ```sql
+    -- PostgreSQL example
+    CREATE DATABASE csp;
+    CREATE DATABASE eti;
+    CREATE DATABASE pii;
+    CREATE DATABASE prc;
+    CREATE DATABASE cnf;
+    CREATE DATABASE com;
+    CREATE DATABASE usr;
+    CREATE DATABASE rep;
+    CREATE DATABASE rel;
+    CREATE DATABASE eer;
+    CREATE DATABASE tp;
+    
+    -- Create schemas
+    CREATE SCHEMA IF NOT EXISTS csp;
+    CREATE SCHEMA IF NOT EXISTS eti;
+    -- ... repeat for each service
+    ```
+  </Step>
+  
+  <Step title="Update Configuration">
+    Edit `application.yml` for each service to point to your database:
+    
+    ```yaml
+    spring:
+      datasource:
+        url: "jdbc:postgresql://postgres:5432/csp"
+        driver-class-name: org.postgresql.Driver
+        username: postgres
+        password: your_password
+      jpa:
+        properties:
+          hibernate:
+            dialect: org.hibernate.dialect.PostgreSQL10Dialect
+            '[default_schema]': csp
+    ```
+  </Step>
+  
+  <Step title="Run Liquibase Migrations">
+    The system uses Liquibase for database schema management. Migrations run automatically on first startup.
+    
+    ```yaml
+    spring:
+      liquibase:
+        enabled: true
+        contexts: dev
+        default-schema: csp
+    ```
+  </Step>
+</Steps>
+
+### Step 6: Build and Start Frontend
+
+```bash
+# Navigate to webapp directory
+cd sgi-webapp
+
+# Install dependencies
+npm install
+
+# Build the Angular framework
+ng build sgi-framework-angular
+
+# Start development server
+npm start
+```
+
+The web application will be available at `http://localhost:4200`.
+
+<Info>
+The frontend build includes a custom CKEditor 5 build for rich text editing capabilities.
+</Info>
+
+### Step 7: Start Microservices
+
+Start each backend service individually or use a process manager:
+
+```bash
+# Start CSP Service (Grants, Applications & Projects)
+cd sgi-csp-service
+java -jar target/sgi-csp-service-1.1.0-SNAPSHOT.jar --spring.profiles.active=dev
+
+# Start ETI Service (Ethics)
+cd sgi-eti-service
+java -jar target/sgi-eti-service-1.1.0-SNAPSHOT.jar --spring.profiles.active=dev
+
+# Repeat for other services...
+```
+
+<Warning>
+Ensure services start in the correct order. Configuration (CNF) and User (USR) services should start first as other services depend on them.
+</Warning>
+
+## Default Ports
+
+Each service runs on a dedicated port:
+
+| Service | Port | Description |
+|---------|------|-------------|
+| sgi-webapp | 4200 | Angular frontend |
+| sgi-auth (Keycloak) | 8080 | Authentication service |
+| sgi-eti-service | 4280 | Ethics service |
+| sgi-csp-service | 4281 | Grants/Projects service |
+| sgi-tp-service | 4285 | Scheduled tasks service |
+| sgi-com-service | 4286 | Communications service |
+| sgi-rep-service | 4287 | Reporting service |
+| sgi-cnf-service | 4288 | Configuration service |
+
+## First Login
+
+<Steps>
+  <Step title="Access the Application">
+    Navigate to `http://localhost:4200` in your web browser.
+  </Step>
+  
+  <Step title="Keycloak Authentication">
+    You'll be redirected to the Keycloak login page at:
+    ```
+    http://localhost:8080/auth/realms/sgi/protocol/openid-connect/auth
+    ```
+  </Step>
+  
+  <Step title="Login with Credentials">
+    Use the credentials configured in Keycloak for your initial admin user.
+  </Step>
+  
+  <Step title="Explore the Dashboard">
+    After successful authentication, you'll see the main HERCULES SGI dashboard with access to:
+    - Convocatorias (Funding Calls)
+    - Proyectos (Projects)
+    - Ética (Ethics Reviews)
+    - Producción Científica (Scientific Production)
+    - Propiedad Industrial (Intellectual Property)
+  </Step>
+</Steps>
+
+## Verify Installation
+
+Check that all services are running correctly:
+
+```bash
+# Check service health endpoints
+curl http://localhost:4281/actuator/health  # CSP Service
+curl http://localhost:4280/actuator/health  # ETI Service
+curl http://localhost:4288/actuator/health  # CNF Service
+```
+
+Expected response:
+```json
+{
+  "status": "UP"
+}
+```
+
+## Configuration Profiles
+
+HERCULES SGI supports multiple Spring profiles:
+
+- **dev**: Development mode with H2 database and debug logging
+- **dev-oracle**: Development with Oracle database
+- **dev-sqlserver**: Development with SQL Server database  
+- **prod**: Production mode with PostgreSQL
+
+Activate profiles using:
+```bash
+java -jar service.jar --spring.profiles.active=prod
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Architecture Overview" icon="sitemap" href="/architecture">
+    Learn about the system architecture and microservices
+  </Card>
+  
+  <Card title="Configuration Guide" icon="gear" href="/deployment/configuration">
+    Configure the system for your institution
+  </Card>
+  
+  <Card title="User Management" icon="users" href="/guides/administrator">
+    Set up users, roles, and permissions
+  </Card>
+  
+  <Card title="Core Modules" icon="plug" href="/modules/csp">
+    Explore the core research management modules
+  </Card>
+</CardGroup>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Service fails to start with database connection error">
+    Verify that PostgreSQL is running and accessible:
+    ```bash
+    psql -U postgres -h localhost -p 5432
+    ```
+    Check the database URL in `application.yml` matches your PostgreSQL configuration.
+  </Accordion>
+  
+  <Accordion title="Keycloak authentication fails">
+    Ensure:
+    1. Keycloak is running on port 8080
+    2. The `sgi` realm is created
+    3. OAuth2 clients are properly configured
+    4. The `issuer-uri` in `application.yml` is correct
+  </Accordion>
+  
+  <Accordion title="Frontend shows blank page">
+    Check browser console for errors. Common issues:
+    1. Backend services not running
+    2. CORS configuration issues
+    3. Keycloak client configuration mismatch
+  </Accordion>
+  
+  <Accordion title="Liquibase migration fails">
+    If migrations fail, check:
+    ```bash
+    # View Liquibase logs
+    tail -f logs/application.log | grep liquibase
+    ```
+    Ensure the database user has schema creation privileges.
+  </Accordion>
+</AccordionGroup>

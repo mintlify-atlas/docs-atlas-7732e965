@@ -1,0 +1,645 @@
+---
+title: "Administrator Guide"
+description: "System configuration and administration guide for HERCULES SGI"
+icon: "gear"
+---
+
+## Overview
+
+As a system administrator, you're responsible for configuring HERCULES SGI to match your institution's policies, workflows, and integration requirements. This guide covers user management, system configuration, and institutional settings.
+
+## User Management
+
+User management is handled through the USR (Users) service, which integrates with your institutional identity provider.
+
+### Managing User Accounts
+
+<Accordion title="Adding New Users">
+  Users are typically synchronized from your institutional directory (LDAP/Active Directory), but you can also add users manually:
+  
+  1. Navigate to **Administration** > **Users**
+  2. Click **Add User**
+  3. Enter user details:
+     - Institutional ID
+     - Name and contact information
+     - Department/Unit
+  4. The user can log in using institutional credentials
+  
+  <Info>User authentication is handled by your SSO provider, not by SGI itself.</Info>
+</Accordion>
+
+<Accordion title="Assigning Roles and Permissions">
+  SGI uses role-based access control (RBAC):
+  
+  **Researcher Roles**:
+  - `CSP-INV`: Can create and manage applications and projects
+  - `ETI-INV`: Can submit ethics reviews
+  - `PII-INV`: Can register inventions
+  
+  **Administrative Roles**:
+  - `CSP-UGI`: Research office manager (unit manager)
+  - `ETI-EVC`: Ethics committee evaluator
+  - `ETI-ACT`: Ethics committee secretary
+  - `PII-ADM`: IP office administrator
+  
+  **System Roles**:
+  - `ADM`: System administrator
+  - `CNF`: Configuration manager
+  
+  To assign roles:
+  1. Select the user
+  2. Click **Manage Roles**
+  3. Check the appropriate role boxes
+  4. Define scope (global or specific management units)
+</Accordion>
+
+<Accordion title="Managing Research Units">
+  Organize your institution into management units (Unidades de Gestión):
+  
+  1. Go to **Administration** > **Unidades de Gestión**
+  2. Create units matching your org structure (departments, faculties, institutes)
+  3. Assign unit managers who can:
+     - Approve applications from their unit
+     - Configure unit-specific settings
+     - Generate unit reports
+  
+  Location: `sgi-webapp/src/app/module/csp/unidad-gestion`
+</Accordion>
+
+### Managing Research Groups
+
+<Accordion title="Creating Research Groups">
+  Research groups are formal organizational units:
+  
+  1. Navigate to **CSP** > **Grupos**
+  2. Click **New Group**
+  3. Configure:
+     - Group name and code
+     - Principal investigator
+     - Research lines
+     - Active period
+     - Associated department/unit
+  
+  Location: `sgi-webapp/src/app/module/csp/grupo/grupo-crear`
+</Accordion>
+
+<Accordion title="Managing Group Members">
+  Define group composition:
+  - Add members with roles (PI, Co-I, Researcher, Technician)
+  - Set dedication percentages
+  - Define membership periods
+  - Track member changes over time
+  
+  <Warning>Minimum dedication requirements can be configured in system settings.</Warning>
+</Accordion>
+
+## System Configuration
+
+The CNF (Configuration) service manages system-wide and module-specific settings.
+
+### Accessing Configuration Settings
+
+Navigate to **Administration** > **Configuration**. Settings are organized by module:
+
+- **CSP Configuration**: Project and application settings
+- **ETI Configuration**: Ethics committee settings
+- **PII Configuration**: Intellectual property settings
+- **PRC Configuration**: Scientific production settings
+- **Global Configuration**: System-wide settings
+
+Location: `sgi-webapp/src/app/module/adm/config-*`
+
+### CSP Module Configuration
+
+<Accordion title="Grant Call Management">
+  Configure how grant calls work:
+  
+  **Format Settings**:
+  - Internal project code format
+  - Budget justification ID format
+  - Budget line numbering
+  
+  ```
+  CSP_FORMATO_CODIGO_INTERNO_PROYECTO: [DEPT]-[YEAR]-[SEQ]
+  CSP_FORMATO_PARTIDA_PRESUPUESTARIA: [CATEGORY].[SUBCATEGORY].[LINE]
+  ```
+  
+  **Application Settings**:
+  - Enable/disable applications without formal calls
+  - Minimum team dedication percentage
+  - Auto-save interval
+  
+  Configuration key: `CSP_DEDICACION_MINIMA_GRUPO`
+</Accordion>
+
+<Accordion title="External System Integration (SGE)">
+  Configure integration with your economic management system:
+  
+  **Connection Settings**:
+  - System name and URL
+  - Integration mode (synchronous/asynchronous)
+  - Data mapping rules
+  
+  **Integration Points**:
+  - Budget synchronization
+  - Expense tracking
+  - Invoice management
+  - Financial reporting
+  
+  Configuration keys:
+  - `CSP_NOMBRE_SISTEMA_GESTION_EXTERNO`
+  - `CSP_URL_SISTEMA_GESTION_EXTERNO`
+  - `CSP_CARDINALIDAD_RELACION_SGI_SGE`
+  
+  Location: `sgi-webapp/src/app/module/adm/config-csp/config-csp.component.ts:12-94`
+</Accordion>
+
+<Accordion title="Expense Classification">
+  Define how expenses are validated:
+  
+  **Validation Modes**:
+  - `CLASIFICACION`: Validate against expense categories
+  - `ELEGIBILIDAD`: Check eligibility rules
+  - `CLASIFICACION_ELEGIBILIDAD`: Both validations
+  
+  Set via: `CSP_VALIDACION_CLASIFICACION_GASTOS`
+  
+  Impact:
+  - Controls which expenses can be charged to projects
+  - Enforces funding agency requirements
+  - Enables automated compliance checking
+</Accordion>
+
+<Accordion title="Notification Recipients">
+  Configure email notifications for different events:
+  
+  **By Event Type**:
+  - Application status changes
+  - Project phase deadlines
+  - Budget alerts
+  - Report due dates
+  
+  **Recipient Configuration**:
+  - By management unit (UO)
+  - By role
+  - Specific email addresses
+  
+  Example configuration keys:
+  - `CSP_COM_SOLICITUD_CAMBIO_ESTADO_SOLICITADA_DESTINATARIOS_UO`
+  - `CSP_COM_PROYECTO_FASES_DESTINATARIOS_UO`
+  
+  Location: `sgi-webapp/src/app/module/adm/config-csp/config-csp.component.ts:20-33`
+</Accordion>
+
+<Accordion title="Export Limits">
+  Set maximum rows for Excel exports to prevent performance issues:
+  
+  ```
+  CSP_EXP_MAX_NUM_REGISTROS_EXCEL_PROYECTO_LISTADO: 5000
+  CSP_EXP_MAX_NUM_REGISTROS_EXCEL_SOLICITUD_LISTADO: 5000
+  CSP_EXP_MAX_NUM_REGISTROS_EXCEL_EJECUCION_PRESUPUESTARIA_GASTOS: 10000
+  ```
+  
+  Affects:
+  - Report generation performance
+  - Memory usage
+  - User experience
+</Accordion>
+
+### ETI Module Configuration
+
+<Accordion title="Ethics Committee Setup">
+  Create and configure ethics committees:
+  
+  1. Navigate to **ETI** > **Comités**
+  2. Define committee details:
+     - Committee type (CEISH, CEEA, CBE)
+     - Name and description
+     - Active period
+  3. Assign committee members:
+     - Chair
+     - Secretary  
+     - Evaluators
+     - Support staff
+  
+  Each committee has independent workflows and meeting schedules.
+</Accordion>
+
+<Accordion title="Meeting Schedules">
+  Configure committee meeting calendars:
+  
+  1. Go to committee settings
+  2. Add **Convocatorias de Reunión**:
+     - Meeting date and time
+     - Submission deadline
+     - Location (physical/virtual)
+     - Maximum submissions
+  3. System automatically assigns submissions to next available meeting
+  
+  <Info>Researchers see the next evaluation date when submitting memorias.</Info>
+</Accordion>
+
+<Accordion title="Evaluation Forms">
+  Customize evaluation forms by committee:
+  - Define evaluation criteria
+  - Set scoring scales
+  - Configure required fields
+  - Create decision templates
+  
+  Forms can vary by:
+  - Research type (clinical, social, animal)
+  - Risk level
+  - Funding source
+</Accordion>
+
+<Accordion title="Document Templates">
+  Configure required documentation:
+  - Informed consent templates
+  - Approval certificate format
+  - Amendment request forms
+  - Annual review templates
+  
+  Templates can include institutional branding and legal disclaimers.
+</Accordion>
+
+### PII Module Configuration
+
+<Accordion title="IP Process Configuration">
+  Define intellectual property workflows:
+  
+  **Invention Disclosure**:
+  - Required fields
+  - Approval chain
+  - Evaluation criteria
+  
+  **Patent Management**:
+  - Cost tracking categories
+  - Filing jurisdictions
+  - Agent/attorney database
+  
+  **Licensing**:
+  - Contract templates
+  - Revenue distribution rules
+  - Reporting requirements
+</Accordion>
+
+<Accordion title="Cost Allocation Rules">
+  Configure how IP costs are managed:
+  - Patent filing fees
+  - Maintenance costs
+  - Attorney fees
+  - Translation costs
+  
+  Define:
+  - Cost centers
+  - Budget allocation
+  - Reimbursement policies
+</Accordion>
+
+### PRC Module Configuration
+
+<Accordion title="Publication Types">
+  Define recognized publication categories:
+  - Journal impact factor sources (JCR, SJR, etc.)
+  - Conference ranking systems
+  - Quality indicators
+  - Open access policies
+</Accordion>
+
+<Accordion title="Metrics Collection">
+  Configure what metrics to track:
+  - Citations
+  - H-index
+  - Downloads
+  - Altmetrics
+  
+  Set update frequency for automated metric collection.
+</Accordion>
+
+### Global Configuration
+
+<Accordion title="Institution Settings">
+  Configure institutional information:
+  - Institution name and logo
+  - Contact information
+  - Legal entity details
+  - Tax identification
+  - Bank account information
+  
+  This information appears on:
+  - Official reports
+  - Grant applications
+  - Contracts and agreements
+</Accordion>
+
+<Accordion title="Date and Time Formats">
+  Set locale-specific formats:
+  - Date format (DD/MM/YYYY, MM/DD/YYYY, etc.)
+  - Time format (24h/12h)
+  - Fiscal year start date
+  - Academic year dates
+</Accordion>
+
+<Accordion title="Email Server Configuration">
+  Configure outbound email:
+  - SMTP server and port
+  - Authentication credentials
+  - From address and name
+  - Email templates
+  - Retry policies
+</Accordion>
+
+## Setting Up Committees and Workflows
+
+### Grant Review Workflow
+
+<Steps>
+  <Step title="Define Review Stages">
+    Configure application review stages:
+    - Initial administrative check
+    - Scientific evaluation
+    - Budget review
+    - Final decision
+  </Step>
+  
+  <Step title="Assign Reviewers">
+    Set up reviewer pools:
+    - Internal evaluators by expertise area
+    - External reviewer database
+    - Conflict of interest rules
+  </Step>
+  
+  <Step title="Configure Evaluation Criteria">
+    Define scoring rubrics:
+    - Scientific merit
+    - Methodological quality  
+    - Team qualifications
+    - Budget justification
+    - Expected impact
+  </Step>
+  
+  <Step title="Set Decision Rules">
+    Configure approval thresholds:
+    - Minimum scores
+    - Consensus requirements
+    - Tie-breaking procedures
+    - Appeal process
+  </Step>
+</Steps>
+
+### Ethics Review Workflow
+
+Ethics committees have specialized workflows configured in the ETI module:
+
+1. **Submission Intake**
+   - Completeness check
+   - Assignment to committee
+   - Scheduling for review
+
+2. **Evaluation**
+   - Primary reviewer assignment
+   - Secondary reviewer (if required)
+   - Committee discussion
+   - Decision recording
+
+3. **Follow-up**
+   - Amendment tracking
+   - Adverse event reporting
+   - Annual renewals
+   - Study closure
+
+## Managing Institutional Settings
+
+<CardGroup cols={2}>
+  <Card title="Organizational Units" icon="sitemap">
+    Define departments, faculties, and institutes with budget authority and reporting lines.
+  </Card>
+  
+  <Card title="Budget Categories" icon="tags">
+    Configure allowable expense categories and eligibility rules by funding source.
+  </Card>
+  
+  <Card title="Research Classifications" icon="folder-tree">
+    Set up knowledge area taxonomies, UNESCO codes, and project type classifications.
+  </Card>
+  
+  <Card title="Document Types" icon="file-lines">
+    Define required document types for applications, reports, and justifications.
+  </Card>
+</CardGroup>
+
+### Organizational Hierarchy
+
+<Accordion title="Defining Units">
+  Create your organizational structure:
+  
+  ```
+  Institution
+  ├── Faculty of Science
+  │   ├── Physics Department
+  │   ├── Chemistry Department
+  │   └── Biology Department
+  ├── Faculty of Engineering
+  │   ├── Computer Science
+  │   └── Electrical Engineering
+  └── Research Institutes
+      ├── Biomedical Institute
+      └── Materials Science Institute
+  ```
+  
+  Each unit can have:
+  - Designated managers
+  - Budget codes
+  - Specific workflows
+  - Custom notification settings
+</Accordion>
+
+### Budget and Finance Configuration
+
+<Accordion title="Expense Categories">
+  Define institutional expense classification:
+  
+  **Personnel Costs**:
+  - Salaries
+  - Social security
+  - Benefits
+  
+  **Operating Costs**:
+  - Materials and supplies
+  - Equipment
+  - Travel
+  - Services
+  
+  **Overhead**:
+  - Indirect costs
+  - Administrative fees
+  - Facilities costs
+  
+  Map to funding agency categories for compliance.
+</Accordion>
+
+<Accordion title="Budget Line Templates">
+  Create templates for common project types:
+  - Standard research project
+  - Equipment grant
+  - Training grant
+  - Clinical trial
+  
+  Templates include:
+  - Predefined categories
+  - Typical percentages
+  - Eligibility rules
+  - Documentation requirements
+</Accordion>
+
+## Data Integration
+
+SGI integrates with multiple institutional systems:
+
+### LDAP/Active Directory Integration
+
+```
+User authentication flow:
+1. User enters credentials
+2. SGI forwards to institutional SSO
+3. LDAP validates credentials
+4. User info synchronized to SGI
+5. Session created with appropriate roles
+```
+
+### Economic Management System (SGE)
+
+Bi-directional integration for:
+- Budget creation and approval
+- Expense recording and validation
+- Invoice processing
+- Financial reporting
+
+Configuration location: `sgi-webapp/src/app/module/adm/config-csp/config-csp.component.ts:62-93`
+
+### HR Systems
+
+Synchronize:
+- Employee records
+- Salary information
+- Department assignments
+- Contract dates
+
+### Research Information Systems
+
+Exchange data with:
+- Publication databases (WoS, Scopus)
+- Institutional repository
+- CRIS/RIMS systems
+- National research databases
+
+## Maintenance and Monitoring
+
+<Warning>
+  Always test configuration changes in a staging environment before applying to production.
+</Warning>
+
+### Regular Maintenance Tasks
+
+- **Weekly**:
+  - Review system logs for errors
+  - Check notification delivery
+  - Monitor database performance
+
+- **Monthly**:
+  - Review user access and roles
+  - Update committee schedules
+  - Audit configuration changes
+  - Generate usage reports
+
+- **Quarterly**:
+  - Review integration health
+  - Update document templates
+  - Assess storage usage
+  - Plan capacity needs
+
+- **Annually**:
+  - Review all institutional settings
+  - Update fiscal year configuration
+  - Archive completed projects
+  - Train new administrators
+
+### Backup and Recovery
+
+<Tip>
+  Always maintain backups of:
+  - Database (daily incremental, weekly full)
+  - Configuration files
+  - Document storage
+  - Integration credentials
+</Tip>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Users Can't Log In">
+    Check:
+    1. SSO/LDAP connectivity
+    2. User exists in institutional directory
+    3. Account not locked or expired
+    4. Browser cookies enabled
+    5. Network connectivity
+  </Accordion>
+  
+  <Accordion title="Notifications Not Sending">
+    Verify:
+    1. Email server configuration
+    2. Recipient configuration for event type
+    3. User email addresses up to date
+    4. Email not caught in spam filters
+    5. SMTP credentials valid
+  </Accordion>
+  
+  <Accordion title="SGE Integration Errors">
+    Investigate:
+    1. Network connectivity to SGE
+    2. API credentials valid
+    3. Data format matches expectations
+    4. Budget codes exist in both systems
+    5. Integration logs for specific errors
+  </Accordion>
+  
+  <Accordion title="Performance Issues">
+    Optimize:
+    1. Database query performance
+    2. Export row limits
+    3. Concurrent user load
+    4. File storage and retrieval
+    5. Cache configuration
+  </Accordion>
+</AccordionGroup>
+
+## Security Best Practices
+
+<Card title="Access Control" icon="shield">
+  - Use principle of least privilege
+  - Regularly audit role assignments
+  - Remove access for departed employees
+  - Use group-based permissions where possible
+</Card>
+
+<Card title="Data Protection" icon="lock">
+  - Enable encryption at rest and in transit
+  - Implement data retention policies
+  - Anonymize data for reports when appropriate
+  - Comply with GDPR and institutional policies
+</Card>
+
+<Card title="Audit Logging" icon="clipboard-list">
+  - Enable comprehensive audit trails
+  - Monitor privileged actions
+  - Regular log review
+  - Long-term log retention
+</Card>
+
+## Related Documentation
+
+- [Architecture Overview](/architecture) - System architecture and integration points
+- [Deployment Guide](/deployment/installation) - Installation and deployment procedures
+- [Configuration Reference](/deployment/configuration) - Detailed configuration options
+- [Manager Guide](/guides/manager) - Research office manager workflows

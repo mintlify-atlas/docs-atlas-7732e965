@@ -1,0 +1,240 @@
+---
+title: 'REP Service API'
+description: 'Report Generation Service - Generación de Informes'
+icon: 'file-pdf'
+---
+
+## Overview
+
+The REP (Reports) service generates PDF reports and documents for the HERCULES SGI system:
+
+- **CSP Reports** - Grant calls, applications, and project reports
+- **ETI Reports** - Ethics committee reports and certificates
+- **PRC Reports** - Scientific production reports
+
+Base URL: `/report`
+
+## Authentication
+
+All endpoints require JWT authentication with appropriate module permissions.
+
+---
+
+## CSP Reports
+
+Base path: `/report/csp`
+
+### Authorization Report for External Projects
+
+<CodeGroup>
+```bash GET /report/csp/autorizacion-proyecto-externo/{idAutorizacion}
+curl -X GET "https://api.example.com/report/csp/autorizacion-proyecto-externo/123?l=es" \
+  -H "Authorization: Bearer {token}" \
+  --output autorizacion.pdf
+```
+</CodeGroup>
+
+Generates a PDF authorization report for participation in external research projects.
+
+<ParamField path="idAutorizacion" type="long" required>
+  Authorization identifier
+</ParamField>
+
+<ParamField query="l" type="string">
+  Language code (e.g., `es`, `en`, `gl`, `eu`). Defaults to Spanish if not specified.
+</ParamField>
+
+**Required Permission:** `CSP-AUT-E`, `CSP-AUT-B`, `CSP-AUT-INV-C`, `CSP-AUT-INV-ER`, `CSP-AUT-INV-BR`
+
+**Response:**
+- **Content-Type:** `application/pdf`
+- **Body:** PDF document binary
+
+<CodeGroup>
+```bash Example Response Headers
+HTTP/1.1 200 OK
+Content-Type: application/pdf
+Content-Length: 245823
+```
+</CodeGroup>
+
+### Convocatoria Reports
+
+<Note>
+Additional CSP report endpoints for convocatorias, solicitudes, and proyectos will be documented as they are implemented. The service architecture supports report generation for all CSP entities.
+</Note>
+
+---
+
+## ETI Reports
+
+Base path: `/report/eti`
+
+<Note>
+ETI report endpoints for committee reports, actas, and evaluaciones will be available through this service. Reports include certificates, evaluation forms, and meeting minutes.
+</Note>
+
+---
+
+## PRC Reports
+
+Base path: `/report/prc`
+
+<Note>
+PRC report endpoints for scientific production summaries and researcher CVs will be available through this service.
+</Note>
+
+---
+
+## Report Features
+
+### Supported Output Formats
+
+Currently, the service generates reports in:
+- **PDF** (primary format)
+
+Future versions may support:
+- Excel (XLSX)
+- Word (DOCX)
+- CSV
+
+### Language Support
+
+Reports support multiple languages through the `l` query parameter:
+
+<ParamField query="l" type="string">
+  Language code:
+  - `es` - Spanish (Castellano)
+  - `en` - English
+  - `gl` - Galician
+  - `eu` - Basque
+</ParamField>
+
+If no language is specified, Spanish is used as default.
+
+### Report Templates
+
+Reports are generated using JasperReports templates with:
+- Dynamic data from the database
+- Internationalized text
+- Custom formatting and branding
+- Digital signatures (where applicable)
+
+---
+
+## Usage Patterns
+
+### Downloading a Report
+
+<CodeGroup>
+```javascript JavaScript/Fetch
+const response = await fetch(
+  'https://api.example.com/report/csp/autorizacion-proyecto-externo/123?l=en',
+  {
+    headers: {
+      'Authorization': 'Bearer ' + token
+    }
+  }
+);
+
+const blob = await response.blob();
+const url = window.URL.createObjectURL(blob);
+const a = document.createElement('a');
+a.href = url;
+a.download = 'authorization-report.pdf';
+a.click();
+```
+
+```python Python/Requests
+import requests
+
+response = requests.get(
+    'https://api.example.com/report/csp/autorizacion-proyecto-externo/123',
+    headers={'Authorization': f'Bearer {token}'},
+    params={'l': 'en'}
+)
+
+with open('authorization-report.pdf', 'wb') as f:
+    f.write(response.content)
+```
+
+```java Java
+HttpURLConnection connection = (HttpURLConnection) new URL(
+    "https://api.example.com/report/csp/autorizacion-proyecto-externo/123?l=en"
+).openConnection();
+
+connection.setRequestProperty("Authorization", "Bearer " + token);
+
+try (InputStream in = connection.getInputStream();
+     FileOutputStream out = new FileOutputStream("authorization-report.pdf")) {
+    byte[] buffer = new byte[8192];
+    int bytesRead;
+    while ((bytesRead = in.read(buffer)) != -1) {
+        out.write(buffer, 0, bytesRead);
+    }
+}
+```
+</CodeGroup>
+
+### Opening Report in New Window
+
+<CodeGroup>
+```javascript Browser JavaScript
+fetch('https://api.example.com/report/csp/autorizacion-proyecto-externo/123', {
+  headers: { 'Authorization': 'Bearer ' + token }
+})
+.then(response => response.blob())
+.then(blob => {
+  const url = window.URL.createObjectURL(blob);
+  window.open(url, '_blank');
+});
+```
+</CodeGroup>
+
+---
+
+## Error Responses
+
+### Report Not Found
+
+<ResponseField name="status" type="integer">404</ResponseField>
+<ResponseField name="error" type="string">Not Found</ResponseField>
+<ResponseField name="message" type="string">
+  The requested authorization does not exist
+</ResponseField>
+
+### Insufficient Permissions
+
+<ResponseField name="status" type="integer">403</ResponseField>
+<ResponseField name="error" type="string">Forbidden</ResponseField>
+<ResponseField name="message" type="string">
+  User does not have permission to access this report
+</ResponseField>
+
+### Report Generation Error
+
+<ResponseField name="status" type="integer">500</ResponseField>
+<ResponseField name="error" type="string">Internal Server Error</ResponseField>
+<ResponseField name="message" type="string">
+  Error generating report
+</ResponseField>
+
+---
+
+## Performance Considerations
+
+<Note>
+**Report generation is synchronous** and may take several seconds for complex reports with large datasets. Consider:
+
+- Implementing client-side loading indicators
+- Setting appropriate timeout values
+- Caching frequently accessed reports
+- Using pagination for large datasets where applicable
+</Note>
+
+## Security
+
+- All report endpoints require authentication
+- Access control is enforced based on user permissions
+- Users can only generate reports for entities they have access to
+- Sensitive data is redacted based on user role

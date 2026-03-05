@@ -1,0 +1,381 @@
+---
+title: 'PII Service API'
+description: 'Intellectual Property Management - Propiedad Industrial e Intelectual'
+icon: 'lightbulb'
+---
+
+## Overview
+
+The PII (Propiedad Industrial e Intelectual) service manages intellectual property and technology transfer:
+
+- **Invenciones** - Inventions and innovations
+- **Solicitudes de Protección** - Protection requests (patents, trademarks)
+- **Procedimientos** - Legal procedures and applications
+- **Repartos** - Revenue distribution among inventors
+
+Base URL: `/invenciones`, `/solicitudesproteccion`
+
+## Authentication
+
+All endpoints require JWT authentication with PII-specific permissions:
+- `PII-INV-*` - Invencion permissions (C=Create, E=Edit, V=View, B=Delete, R=Reactivate)
+
+---
+
+## Invenciones (Inventions)
+
+### List Active Inventions
+
+<CodeGroup>
+```bash GET /invenciones
+curl -X GET "https://api.example.com/invenciones?q=activo==true" \
+  -H "Authorization: Bearer {token}"
+```
+</CodeGroup>
+
+Returns active inventions.
+
+<ParamField query="q" type="string">
+  RSQL filter query
+</ParamField>
+
+<ParamField query="s" type="string">
+  Sort specification
+</ParamField>
+
+<ResponseField name="content" type="array">
+  Array of Invencion objects
+  <Expandable title="Invencion object">
+    <ResponseField name="id" type="long">Invention identifier</ResponseField>
+    <ResponseField name="titulo" type="string">Invention title</ResponseField>
+    <ResponseField name="fechaComunicacion" type="date">Communication date</ResponseField>
+    <ResponseField name="descripcion" type="string">Description</ResponseField>
+    <ResponseField name="comentarios" type="string">Comments</ResponseField>
+    <ResponseField name="proyectoRef" type="string">Related project reference</ResponseField>
+    <ResponseField name="tipoProteccion" type="object">Protection type</ResponseField>
+    <ResponseField name="activo" type="boolean">Active status</ResponseField>
+  </Expandable>
+</ResponseField>
+
+### List All Inventions (Including Inactive)
+
+<CodeGroup>
+```bash GET /invenciones/todos
+curl -X GET "https://api.example.com/invenciones/todos" \
+  -H "Authorization: Bearer {token}"
+```
+</CodeGroup>
+
+**Required Permission:** `PII-INV-V`, `PII-INV-C`, `PII-INV-E`, `PII-INV-B`, `PII-INV-R`
+
+### Get Invention by ID
+
+<CodeGroup>
+```bash GET /invenciones/{id}
+curl -X GET "https://api.example.com/invenciones/123" \
+  -H "Authorization: Bearer {token}"
+```
+</CodeGroup>
+
+<ParamField path="id" type="long" required>
+  Invention identifier
+</ParamField>
+
+### Create Invention
+
+<CodeGroup>
+```bash POST /invenciones
+curl -X POST "https://api.example.com/invenciones" \
+  -H "Authorization: Bearer {token}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "titulo": "Novel Biotechnology Process",
+    "fechaComunicacion": "2024-01-15",
+    "descripcion": "Innovative process for...",
+    "tipoProteccion": {"id": 1}
+  }'
+```
+</CodeGroup>
+
+**Required Permission:** `PII-INV-E`
+
+### Update Invention
+
+<CodeGroup>
+```bash PUT /invenciones/{id}
+curl -X PUT "https://api.example.com/invenciones/123" \
+  -H "Authorization: Bearer {token}" \
+  -H "Content-Type: application/json" \
+  -d '{"titulo": "Updated Title"}'
+```
+</CodeGroup>
+
+**Required Permission:** `PII-INV-E`
+
+### Invention Sub-Resources
+
+#### Get Invention Inventors
+
+<CodeGroup>
+```bash GET /invenciones/{invencionId}/invencion-inventores
+curl -X GET "https://api.example.com/invenciones/123/invencion-inventores" \
+  -H "Authorization: Bearer {token}"
+```
+</CodeGroup>
+
+Returns the list of inventors associated with the invention.
+
+<ResponseField name="content" type="array">
+  <Expandable title="InvencionInventor object">
+    <ResponseField name="id" type="long">Inventor relationship ID</ResponseField>
+    <ResponseField name="invencionId" type="long">Invention ID</ResponseField>
+    <ResponseField name="inventorRef" type="string">Inventor reference</ResponseField>
+    <ResponseField name="participacion" type="decimal">Participation percentage</ResponseField>
+    <ResponseField name="repartoUniversidad" type="boolean">University distribution flag</ResponseField>
+  </Expandable>
+</ResponseField>
+
+#### Get Application Sectors
+
+<CodeGroup>
+```bash GET /invenciones/{id}/sectoresaplicacion
+curl -X GET "https://api.example.com/invenciones/123/sectoresaplicacion" \
+  -H "Authorization: Bearer {token}"
+```
+</CodeGroup>
+
+Returns application sectors for the invention.
+
+#### Get Knowledge Areas
+
+<CodeGroup>
+```bash GET /invenciones/{id}/areasconocimiento
+curl -X GET "https://api.example.com/invenciones/123/areasconocimiento" \
+  -H "Authorization: Bearer {token}"
+```
+</CodeGroup>
+
+#### Get Patentability Reports
+
+<CodeGroup>
+```bash GET /invenciones/{id}/informespatentabilidad
+curl -X GET "https://api.example.com/invenciones/123/informespatentabilidad" \
+  -H "Authorization: Bearer {token}"
+```
+</CodeGroup>
+
+Returns patentability assessment reports.
+
+#### Get Invention Expenses
+
+<CodeGroup>
+```bash GET /invenciones/{invencionId}/gastos
+curl -X GET "https://api.example.com/invenciones/123/gastos" \
+  -H "Authorization: Bearer {token}"
+```
+</CodeGroup>
+
+Returns expenses related to the invention (e.g., patent fees, legal costs).
+
+#### Get Invention Income
+
+<CodeGroup>
+```bash GET /invenciones/{invencionId}/ingresos
+curl -X GET "https://api.example.com/invenciones/123/ingresos" \
+  -H "Authorization: Bearer {token}"
+```
+</CodeGroup>
+
+Returns income generated from the invention (e.g., licensing fees).
+
+#### Get Ownership Periods
+
+<CodeGroup>
+```bash GET /invenciones/{invencionId}/periodostitularidad
+curl -X GET "https://api.example.com/invenciones/123/periodostitularidad" \
+  -H "Authorization: Bearer {token}"
+```
+</CodeGroup>
+
+Returns ownership periods and rights holders.
+
+#### Get Revenue Distribution
+
+<CodeGroup>
+```bash GET /invenciones/{invencionId}/repartos
+curl -X GET "https://api.example.com/invenciones/123/repartos" \
+  -H "Authorization: Bearer {token}"
+```
+</CodeGroup>
+
+Returns revenue distribution calculations among inventors.
+
+---
+
+## Solicitudes de Protección (Protection Requests)
+
+### Get Protection Request by ID
+
+<CodeGroup>
+```bash GET /solicitudesproteccion/{id}
+curl -X GET "https://api.example.com/solicitudesproteccion/456" \
+  -H "Authorization: Bearer {token}"
+```
+</CodeGroup>
+
+<ParamField path="id" type="long" required>
+  Protection request identifier
+</ParamField>
+
+<ResponseField name="id" type="long">Protection request ID</ResponseField>
+<ResponseField name="titulo" type="string">Title</ResponseField>
+<ResponseField name="fechaPrioridadSolicitud" type="date">Priority date</ResponseField>
+<ResponseField name="numeroSolicitud" type="string">Application number</ResponseField>
+<ResponseField name="invencionId" type="long">Related invention ID</ResponseField>
+<ResponseField name="tipoProteccion" type="object">Protection type</ResponseField>
+<ResponseField name="viaProteccion" type="object">Protection route (national, PCT, European)</ResponseField>
+
+### Create Protection Request
+
+<CodeGroup>
+```bash POST /solicitudesproteccion
+curl -X POST "https://api.example.com/solicitudesproteccion" \
+  -H "Authorization: Bearer {token}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "titulo": "Patent Application",
+    "invencionId": 123,
+    "fechaPrioridadSolicitud": "2024-02-01",
+    "tipoProteccion": {"id": 1},
+    "viaProteccion": {"id": 2}
+  }'
+```
+</CodeGroup>
+
+**Required Permission:** `PII-INV-E`
+
+### Update Protection Request
+
+<CodeGroup>
+```bash PUT /solicitudesproteccion/{id}
+curl -X PUT "https://api.example.com/solicitudesproteccion/456" \
+  -H "Authorization: Bearer {token}" \
+  -H "Content-Type: application/json" \
+  -d '{"numeroSolicitud": "ES2024123456"}'
+```
+</CodeGroup>
+
+**Required Permission:** `PII-INV-E`
+
+### Delete Protection Request
+
+<CodeGroup>
+```bash DELETE /solicitudesproteccion/{id}
+curl -X DELETE "https://api.example.com/solicitudesproteccion/456" \
+  -H "Authorization: Bearer {token}"
+```
+</CodeGroup>
+
+**Required Permission:** `PII-INV-E`
+
+### Protection Request Sub-Resources
+
+#### Check Validated Countries Exist
+
+<CodeGroup>
+```bash HEAD /solicitudesproteccion/{solicitudProteccionId}/paisesvalidados
+curl -I "https://api.example.com/solicitudesproteccion/456/paisesvalidados" \
+  -H "Authorization: Bearer {token}"
+```
+</CodeGroup>
+
+Returns HTTP 200 if validated countries exist, 204 otherwise.
+
+#### Get Validated Countries
+
+<CodeGroup>
+```bash GET /solicitudesproteccion/{solicitudProteccionId}/paisesvalidados
+curl -X GET "https://api.example.com/solicitudesproteccion/456/paisesvalidados" \
+  -H "Authorization: Bearer {token}"
+```
+</CodeGroup>
+
+Returns countries where the patent has been validated.
+
+<ResponseField name="content" type="array">
+  <Expandable title="PaisValidado object">
+    <ResponseField name="id" type="long">Validated country ID</ResponseField>
+    <ResponseField name="solicitudProteccionId" type="long">Protection request ID</ResponseField>
+    <ResponseField name="paisRef" type="string">Country reference code</ResponseField>
+    <ResponseField name="fechaValidacion" type="date">Validation date</ResponseField>
+    <ResponseField name="codigoValidacion" type="string">Validation code</ResponseField>
+  </Expandable>
+</ResponseField>
+
+#### Get Legal Procedures
+
+<CodeGroup>
+```bash GET /solicitudesproteccion/{solicitudProteccionId}/procedimientos
+curl -X GET "https://api.example.com/solicitudesproteccion/456/procedimientos" \
+  -H "Authorization: Bearer {token}"
+```
+</CodeGroup>
+
+Returns legal procedures associated with the protection request.
+
+<ResponseField name="content" type="array">
+  <Expandable title="Procedimiento object">
+    <ResponseField name="id" type="long">Procedure ID</ResponseField>
+    <ResponseField name="solicitudProteccionId" type="long">Protection request ID</ResponseField>
+    <ResponseField name="fecha" type="date">Procedure date</ResponseField>
+    <ResponseField name="tipoProcedimiento" type="object">Procedure type</ResponseField>
+    <ResponseField name="accionATomar" type="string">Action to take</ResponseField>
+    <ResponseField name="comentarios" type="string">Comments</ResponseField>
+  </Expandable>
+</ResponseField>
+
+#### Get Related Expenses
+
+<CodeGroup>
+```bash GET /solicitudesproteccion/{solicitudProteccionId}/invenciongastos
+curl -X GET "https://api.example.com/solicitudesproteccion/456/invenciongastos" \
+  -H "Authorization: Bearer {token}"
+```
+</CodeGroup>
+
+Returns expenses related to the protection request.
+
+---
+
+## Common Patterns
+
+### Pagination
+
+<ParamField query="page" type="integer" default="0">
+  Page number (zero-based)
+</ParamField>
+
+<ParamField query="size" type="integer" default="10">
+  Items per page
+</ParamField>
+
+<ParamField query="sort" type="string">
+  Sort field and direction (e.g., `fechaComunicacion,desc`)
+</ParamField>
+
+### Filtering with RSQL
+
+Examples:
+```
+q=activo==true
+q=tipoProteccion.id==1
+q=fechaComunicacion=ge='2024-01-01'
+q=titulo=like='Biotech*'
+```
+
+### Error Responses
+
+<ResponseField name="status" type="integer">HTTP status code</ResponseField>
+<ResponseField name="error" type="string">Error type</ResponseField>
+<ResponseField name="message" type="string">Error description</ResponseField>
+<ResponseField name="timestamp" type="datetime">Error timestamp</ResponseField>

@@ -1,0 +1,316 @@
+---
+title: ETI - Ética
+description: Ethics review and research ethics committee management
+---
+
+## Overview
+
+The **ETI (Ética)** module manages the complete ethics review process for research activities. It handles ethics committee operations, memory/report evaluation, meeting management, and multi-language report generation.
+
+<CardGroup cols={3}>
+  <Card title="Comités" icon="users">
+    Manage ethics committees and evaluators
+  </Card>
+  <Card title="Memorias" icon="file-medical">
+    Process ethics review submissions
+  </Card>
+  <Card title="Evaluaciones" icon="clipboard-check">
+    Conduct ethics evaluations and reviews
+  </Card>
+</CardGroup>
+
+## Key Features
+
+### Ethics Committee Management
+
+- **Committee Configuration**: Set up multiple ethics committees (CEI, CEEA, etc.) with specific workflows
+- **Evaluator Management**: Assign evaluators with expertise areas and conflict of interest tracking
+- **Meeting Scheduling**: Plan committee meetings with agendas and documentation
+- **Minute Management**: Generate and approve formal meeting minutes (`Acta`)
+- **Dynamic Forms**: Configure custom evaluation forms per committee type
+
+### Ethics Review Process (Memorias)
+
+<Info>
+A "Memoria" is an ethics review submission that must be evaluated by an ethics committee.
+</Info>
+
+- **Submission Types**:
+  - **NUEVA**: New ethics review request
+  - **MODIFICACION**: Modification to existing approval
+  - **RATIFICACION**: Ratification of previous decision
+- **State Workflow**: Track submission through evaluation states (`TipoEstadoMemoria`)
+- **Version Control**: Maintain version history of submissions
+- **Retrospective Reviews**: Handle retrospective ethics reviews when required
+- **Multi-language Support**: Titles and content in multiple languages
+
+### Evaluation Workflow
+
+<Tabs>
+  <Tab title="Researcher">
+    1. Create ethics review request (`PeticionEvaluacion`)
+    2. Complete ethics memory form (`Memoria`)
+    3. Submit required documentation
+    4. Track evaluation status
+    5. Respond to committee comments
+    6. Receive ethics approval or recommendations
+  </Tab>
+  <Tab title="Evaluator">
+    1. Review assigned memories
+    2. Complete evaluation checklist
+    3. Provide comments and recommendations
+    4. Declare conflicts of interest
+    5. Submit evaluation before committee meeting
+    6. Participate in committee meeting discussions
+  </Tab>
+  <Tab title="Committee Secretary">
+    1. Assign memories to evaluators
+    2. Schedule committee meetings (`ConvocatoriaReunion`)
+    3. Prepare meeting agenda and documentation
+    4. Conduct meeting and record decisions
+    5. Generate minutes (`Acta`)
+    6. Communicate decisions to researchers
+    7. Manage follow-up requirements
+  </Tab>
+</Tabs>
+
+### Dynamic Forms and Reports
+
+- **Form Configuration**: Use Formly-based dynamic forms for flexible data collection
+- **Custom Checklists**: Define evaluation criteria per committee type
+- **Multi-language Reports**: Generate reports in different languages using configured templates
+- **Report Types**: Ethics approval certificates, evaluation reports, committee minutes
+
+## Main Entities
+
+### Comité (Ethics Committee)
+
+<Info>
+Located at: `sgi-eti-service/src/main/java/org/crue/hercules/sgi/eti/model/Comite.java`
+</Info>
+
+Key attributes:
+- `codigo`: Committee code (e.g., "CEI", "CEEA")
+- `nombre`: Committee name (multi-language)
+- `formularioMemoriaId`: Main evaluation form
+- `formularioSeguimientoAnualId`: Annual follow-up form
+- `formularioSeguimientoFinalId`: Final follow-up form
+- `formularioRetrospectivaId`: Retrospective review form
+- `requiereRetrospectiva`: Whether committee requires retrospective reviews
+- `prefijoReferencia`: Reference prefix for memory codes
+- `permitirRatificacion`: Allow ratification submissions
+- Configuration flags for task and memory customization
+
+Related entities:
+- `Evaluador`: Committee members and evaluators
+- `ConvocatoriaReunion`: Committee meetings
+- `CargoComite`: Committee positions/roles
+
+### Memoria (Ethics Memory/Submission)
+
+<Info>
+Located at: `sgi-eti-service/src/main/java/org/crue/hercules/sgi/eti/model/Memoria.java`
+</Info>
+
+Key attributes:
+- `numReferencia`: Unique reference number
+- `peticionEvaluacion`: Associated evaluation request
+- `comite`: Ethics committee handling the review
+- `formulario`: Evaluation form used
+- `titulo`: Memory title (multi-language)
+- `personaRef`: Responsible researcher
+- `tipo`: Memory type (NUEVA, MODIFICACION, RATIFICACION)
+- `estadoActual`: Current state in workflow
+- `fechaEnvioSecretaria`: Submission date
+- `version`: Version number
+- `requiereRetrospectiva`: Retrospective review required flag
+- `retrospectiva`: Linked retrospective review
+- `memoriaOriginal`: Original memory for modifications
+
+Related entities:
+- `Evaluacion`: Evaluations performed on the memory
+- `DocumentacionMemoria`: Supporting documents
+- `EstadoMemoria`: State history
+- `Comentario`: Comments and feedback
+
+### PeticionEvaluacion (Evaluation Request)
+
+Key attributes:
+- `titulo`: Request title
+- `resumen`: Research summary
+- `objetivos`: Research objectives
+- `disMetodologico`: Methodological design
+- `fuenteFinanciacion`: Funding source
+- Team and researcher information
+- Risk assessment data
+
+### Evaluacion (Evaluation)
+
+Key attributes:
+- `memoria`: Memory being evaluated
+- `convocatoriaReunion`: Committee meeting
+- `tipoEvaluacion`: Evaluation type
+- `dictamen`: Final decision/verdict
+- `evaluador1`, `evaluador2`: Assigned evaluators
+- `version`: Evaluation version
+- Comments and assessment data
+
+Related entities:
+- `Comentario`: Evaluation comments
+- `Dictamen`: Possible verdicts (approved, rejected, modifications required, etc.)
+
+### ConvocatoriaReunion (Committee Meeting)
+
+Key attributes:
+- `comite`: Committee holding the meeting
+- `fechaEvaluacion`: Meeting date and time
+- `lugar`: Meeting location (multi-language)
+- `ordenDia`: Agenda (multi-language)
+- `tipoConvocatoriaReunion`: Meeting type
+- `horaInicio`, `horaInicio2`: Session times
+- `videoconferencia`: Video conference flag
+
+Related entities:
+- `Asistentes`: Meeting attendees
+- `DocumentacionConvocatoriaReunion`: Meeting documentation
+- `Acta`: Generated meeting minutes
+
+### Acta (Meeting Minutes)
+
+Key attributes:
+- `convocatoriaReunion`: Associated meeting
+- `numero`: Minutes number
+- `resumen`: Summary (multi-language)
+- `estadoActual`: Current state
+- `inactiva`: Inactive flag
+
+Related entities:
+- `ActaDocumento`: Formal minutes documents
+- `Comentario`: Comments and decisions recorded
+
+## User Workflows
+
+### Submitting an Ethics Review Request
+
+1. Create new evaluation request (`PeticionEvaluacion`)
+2. Complete research details: objectives, methodology, funding
+3. Define research team and responsibilities
+4. Assess ethical risks and considerations
+5. Create associated memory (`Memoria`)
+6. Select appropriate committee and form
+7. Complete ethics evaluation form
+8. Attach required documentation
+9. Submit to committee secretary
+10. Track evaluation status
+
+### Conducting Committee Review
+
+1. Secretary receives and validates submissions
+2. Assign evaluators (avoiding conflicts of interest)
+3. Evaluators review and complete checklists
+4. Schedule committee meeting
+5. Prepare meeting agenda with memories to review
+6. Distribute documentation to committee members
+7. Conduct meeting and discuss each case
+8. Record decisions in minutes (`Acta`)
+9. Generate formal approval/rejection documents
+10. Notify researchers of decisions
+11. Track follow-up requirements
+
+### Managing Follow-up Reports
+
+1. Approved projects receive follow-up requirements
+2. Researchers submit annual follow-up reports
+3. Committee reviews compliance
+4. Final follow-up report at project completion
+5. Close ethics approval record
+
+## Dynamic Form System
+
+<Note>
+The ETI module uses a sophisticated dynamic form system based on Formly:
+
+- **Formulario**: Form definition entity
+- **Bloque**: Form sections/blocks
+- **Apartado**: Form subsections
+- **FormlyDefinicion**: Field definitions in JSON format
+- Supports conditional logic and validation rules
+</Note>
+
+Form types:
+- Ethics memory evaluation forms
+- Annual follow-up forms
+- Final follow-up forms
+- Retrospective review forms
+- Task and training forms
+
+## Report Generation
+
+The module supports multi-language report generation:
+
+- **FormularioReport**: Links forms to report templates
+- **Informe**: Generated report metadata
+- **InformeDocumento**: Report documents in multiple languages
+
+Report types:
+- Ethics approval certificates
+- Evaluation reports
+- Committee minutes
+- Follow-up assessments
+
+## Conflict of Interest Management
+
+- Track evaluator conflicts (`ConflictoInteres`)
+- Prevent assignment of conflicted evaluators
+- Automatic validation during assignment
+- Transparency in committee decisions
+
+## Integration Points
+
+<Note>
+- **CSP Module**: Link ethics approvals to research projects
+- **REP Module**: Generate ethics committee reports and statistics
+- **COM Module**: Notifications for deadlines, meetings, and decisions
+</Note>
+
+## API Endpoints
+
+Key REST endpoints:
+- `/comites`: Committee management
+- `/memorias`: Memory submission and tracking
+- `/peticion-evaluaciones`: Evaluation requests
+- `/evaluaciones`: Evaluation management
+- `/convocatoria-reuniones`: Meeting scheduling
+- `/actas`: Minutes management
+- `/evaluadores`: Evaluator assignment
+
+## Database Schema
+
+Database migrations:
+```
+sgi-eti-service/src/main/resources/db/changelog/
+```
+
+Core tables:
+- `comite` - Ethics committees
+- `memoria` - Ethics submissions
+- `evaluacion` - Evaluations
+- `convocatoria_reunion` - Meetings
+- `acta` - Minutes
+- `formulario` - Dynamic forms
+- Supporting tables for form definitions and relationships
+
+## Frontend Components
+
+Web interface:
+```
+sgi-webapp/src/app/module/eti/
+```
+
+Key features:
+- Memory submission wizard
+- Committee dashboard
+- Evaluation interface
+- Meeting management
+- Dynamic form rendering
+- Report generation tools

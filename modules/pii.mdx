@@ -1,0 +1,311 @@
+---
+title: PII - Propiedad Industrial e Intelectual
+description: Intellectual property management for research innovations
+---
+
+## Overview
+
+The **PII (Propiedad Industrial e Intelectual)** module manages the lifecycle of intellectual property generated from research activities. It handles invention disclosure, protection requests, patent procedures, and economic rights distribution.
+
+<CardGroup cols={3}>
+  <Card title="Invenciones" icon="lightbulb">
+    Track research inventions and innovations
+  </Card>
+  <Card title="Protección" icon="shield">
+    Manage protection requests and patents
+  </Card>
+  <Card title="Repartos" icon="coins">
+    Calculate and distribute royalties
+  </Card>
+</CardGroup>
+
+## Key Features
+
+### Invention Management (Invenciones)
+
+- **Invention Disclosure**: Record research innovations and discoveries
+- **Multi-language Support**: Define titles and descriptions in multiple languages
+- **Inventor Tracking**: Manage inventor teams and their contributions
+- **Project Linkage**: Connect inventions to research projects (`proyectoRef`)
+- **Classification**: Categorize by application sectors and knowledge areas
+- **Documentation**: Attach technical documentation and prior art searches
+- **Patentability Assessment**: Request and track patentability reports
+
+### Protection Workflow (Solicitudes de Protección)
+
+<Tabs>
+  <Tab title="Disclosure Stage">
+    1. Researcher submits invention disclosure
+    2. Technology transfer office reviews submission
+    3. Assess commercial potential
+    4. Request patentability report if needed
+    5. Decide on protection strategy
+  </Tab>
+  <Tab title="Protection Stage">
+    1. Create protection request (`SolicitudProteccion`)
+    2. Select protection type (patent, utility model, etc.)
+    3. Choose protection route (`ViaProteccion`)
+    4. Define geographical scope
+    5. Assign to patent attorney/agent
+    6. Track filing procedures
+  </Tab>
+  <Tab title="Maintenance Stage">
+    1. Monitor granted protections
+    2. Track renewal deadlines
+    3. Manage maintenance fees
+    4. Update ownership periods (`PeriodoTitularidad`)
+    5. Handle licensing and transfers
+  </Tab>
+</Tabs>
+
+### Economic Management
+
+- **Income Tracking** (`InvencionIngreso`): Record royalties and licensing fees
+- **Expense Tracking** (`InvencionGasto`): Track patent costs and attorney fees
+- **Distribution Calculations** (`Reparto`): Calculate inventor and institution shares
+- **Distribution Models** (`TramoReparto`): Define revenue sharing tiers
+- **Inventor Compensation** (`RepartoEquipoInventor`): Distribute payments to inventors
+
+## Main Entities
+
+### Invencion (Invention)
+
+<Info>
+Located at: `sgi-pii-service/src/main/java/org/crue/hercules/sgi/pii/model/Invencion.java`
+</Info>
+
+Key attributes:
+- `titulo`: Invention title (multi-language)
+- `fechaComunicacion`: Date of disclosure
+- `descripcion`: Technical description (multi-language)
+- `comentarios`: Internal comments (multi-language)
+- `proyectoRef`: Reference to source research project
+- `tipoProteccion`: Type of protection (patent, trademark, etc.)
+- `activo`: Active status
+
+Related entities:
+- `InvencionInventor`: Inventor team members with contribution percentages
+- `InvencionSectorAplicacion`: Application sectors
+- `InvencionAreaConocimiento`: Knowledge areas
+- `InvencionPalabraClave`: Keywords
+- `SolicitudProteccion`: Protection requests
+- `InvencionDocumento`: Supporting documents
+- `InvencionIngreso`: Income records
+- `InvencionGasto`: Expense records
+- `PeriodoTitularidad`: Ownership periods
+
+### SolicitudProteccion (Protection Request)
+
+Key attributes:
+- `invencion`: Associated invention
+- `titulo`: Request title (multi-language)
+- `fechaPrioridadSolicitud`: Priority date
+- `tipoProteccion`: Protection type
+- `viaProteccion`: Protection route (national, PCT, European, etc.)
+- `numeroSolicitud`: Application number
+- `numeroPublicacion`: Publication number
+- `numeroConcesion`: Grant number
+- `fechaFinPriorPresFasNacRec`: Deadline for national phase entry
+- `comentarios`: Comments (multi-language)
+
+Related entities:
+- `PaisValidado`: Countries where protection is validated
+- `Procedimiento`: Associated procedures
+- `InformePatentabilidad`: Patentability reports
+
+### Procedimiento (Procedure)
+
+Tracks legal procedures and actions:
+- `solicitudProteccion`: Associated protection request
+- `fecha`: Procedure date
+- `tipoProcedimiento`: Procedure type (filing, examination, grant, etc.)
+- `accionATomar`: Action to take (multi-language)
+- `fechaLimiteAccion`: Action deadline
+- `generarAviso`: Generate reminder flag
+- `comentarios`: Comments (multi-language)
+
+Related entities:
+- `ProcedimientoDocumento`: Procedure documents
+
+### InformePatentabilidad (Patentability Report)
+
+Patentability assessment:
+- `invencion`: Invention being assessed
+- `fechaInforme`: Report date
+- `nombreRef`: Assessor reference
+- `resultadoInformePatentabilidad`: Assessment result
+- `entidadCreadora`: Organization that created report
+- `contactoEntidadCreadora`: Contact information
+- `comentarios`: Comments (multi-language)
+
+### Reparto (Distribution)
+
+Economic rights distribution:
+- `invencion`: Associated invention
+- `fecha`: Distribution date
+- `importeUniversidad`: University share
+- `importeEquipoInventor`: Inventors' total share
+- Distribution model and state
+
+Related entities:
+- `RepartoEquipoInventor`: Individual inventor shares
+- `RepartoGasto`: Deducted expenses
+- `RepartoIngreso`: Distributed income
+- `TramoReparto`: Distribution tier configuration
+
+### PeriodoTitularidad (Ownership Period)
+
+Tracks ownership over time:
+- `invencion`: Associated invention
+- `fechaInicio`, `fechaFin`: Period dates
+
+Related entities:
+- `PeriodoTitularidadTitular`: Ownership shares by entity/person
+
+## User Workflows
+
+### Disclosing an Invention
+
+1. Navigate to inventions module
+2. Create new invention record
+3. Enter title and description (multi-language)
+4. Link to research project if applicable
+5. Add inventor team with contribution percentages
+6. Define application sectors and knowledge areas
+7. Attach technical documentation
+8. Submit for technology transfer review
+
+### Processing a Protection Request
+
+1. Review invention disclosure
+2. Request patentability report if needed
+3. Evaluate commercial potential
+4. Decide on protection strategy
+5. Create protection request (`SolicitudProteccion`)
+6. Select protection type and route
+7. Define geographical scope (countries)
+8. File application and record application number
+9. Track procedure milestones:
+   - Filing receipt
+   - Publication
+   - Examination
+   - Grant
+   - Validation in specific countries
+10. Manage deadlines and renewals
+
+### Managing Economic Rights
+
+1. Record invention-related income (licenses, royalties)
+2. Track expenses (filing fees, attorney costs, annuities)
+3. Calculate net income
+4. Create distribution record (`Reparto`)
+5. Apply distribution model (tiered percentages)
+6. Calculate inventor shares
+7. Generate payment orders
+8. Process inventor compensation
+9. Update distribution history
+
+### Tracking Ownership Changes
+
+1. Create new ownership period (`PeriodoTitularidad`)
+2. Define period dates
+3. Add titulars with ownership percentages
+4. Handle transfers or assignments
+5. Update licensing rights
+6. Maintain ownership history
+
+## Protection Types and Routes
+
+### Protection Types (TipoProteccion)
+
+- Patents (utility patents)
+- Utility models
+- Trademarks
+- Industrial designs
+- Plant varieties
+- Software copyright
+
+### Protection Routes (ViaProteccion)
+
+- **National**: Direct filing in specific country
+- **PCT**: Patent Cooperation Treaty international application
+- **European**: European Patent Office route
+- **Community**: EU-wide protection (trademarks, designs)
+
+## Integration Points
+
+<Note>
+The PII module integrates with:
+
+- **CSP Module**: Link inventions to research projects
+- **PRC Module**: Include patents in research output metrics
+- **SGE (Economic)**: Financial tracking for IP-related income and expenses
+- **REP Module**: Generate IP portfolio reports and statistics
+- **COM Module**: Deadline reminders and procedure notifications
+</Note>
+
+## Patentability Reports
+
+Manage external assessment:
+- Request reports from technology centers
+- Track report status
+- Record assessment results:
+  - Patentable
+  - Not patentable
+  - Patentable with modifications
+  - Further research needed
+- Use results to guide protection decisions
+
+## Document Management
+
+Key document types:
+- Technical disclosures
+- Prior art searches
+- Patent applications
+- Office actions and responses
+- Grant certificates
+- License agreements
+- Assignment documents
+
+## API Endpoints
+
+REST API structure:
+- `/invenciones`: Invention management
+- `/solicitudes-proteccion`: Protection requests
+- `/procedimientos`: Legal procedures
+- `/informes-patentabilidad`: Patentability reports
+- `/repartos`: Economic distributions
+- `/periodos-titularidad`: Ownership tracking
+- `/tipos-proteccion`: Protection type master data
+- `/vias-proteccion`: Protection route configuration
+
+## Database Schema
+
+Database migrations:
+```
+sgi-pii-service/src/main/resources/db/changelog/
+```
+
+Core tables:
+- `invencion` - Inventions
+- `solicitud_proteccion` - Protection requests
+- `procedimiento` - Legal procedures
+- `reparto` - Economic distributions
+- `periodo_titularidad` - Ownership periods
+- Supporting tables for types, relationships, and multi-language content
+
+## Frontend Components
+
+Web interface:
+```
+sgi-webapp/src/app/module/pii/
+```
+
+Key features:
+- Invention disclosure forms
+- Protection request management
+- Procedure tracking dashboard
+- Economic distribution calculator
+- Patent portfolio viewer
+- Deadline calendar
+- Report generation tools

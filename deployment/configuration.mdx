@@ -1,0 +1,506 @@
+---
+title: Configuration
+description: Configure HERCULES SGI services, databases, and service communication
+---
+
+This guide covers the configuration of all HERCULES SGI components including backend services, databases, service-to-service communication, and frontend settings.
+
+## Configuration Overview
+
+SGI services use Spring Boot's `application.yml` configuration files with support for multiple profiles:
+
+- **dev** - Development profile with H2 in-memory database
+- **dev-oracle** - Development with Oracle database
+- **dev-sqlserver** - Development with SQL Server
+- **prod** - Production profile with PostgreSQL
+
+## Core Configuration Parameters
+
+### Server Configuration
+
+<ParamField path="server.port" type="integer" default="8080">
+  Port number for the HTTP server. Different for each service:
+  - CSP Service: 4281
+  - ETI Service: 4280
+  - COM Service: 4286
+  - CNF Service: 4288
+  - TP Service: 4285
+  - REP Service: 4287
+</ParamField>
+
+<ParamField path="server.error.whitelabel.enabled" type="boolean" default="false">
+  Disable the default Spring Boot error page for production.
+</ParamField>
+
+### Application Settings
+
+<ParamField path="sgi.web-url" type="string" required>
+  URL of the frontend web application.
+  
+  **Example:** `http://localhost:4200` (dev) or `https://sgi.example.com` (prod)
+</ParamField>
+
+<ParamField path="sgi.time-zone" type="string" default="Europe/Madrid">
+  Default time zone for the application.
+</ParamField>
+
+## Database Configuration
+
+<Accordion title="PostgreSQL (Production)">
+
+Production deployment uses PostgreSQL:
+
+```yaml
+spring:
+  datasource:
+    url: "jdbc:postgresql://postgres:5432/csp"
+    driver-class-name: org.postgresql.Driver
+    username: postgres
+    password: admin
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQL10Dialect
+        '[default_schema]': csp
+```
+
+<ParamField path="spring.datasource.url" type="string" required>
+  JDBC connection URL for PostgreSQL.
+  
+  **Format:** `jdbc:postgresql://[host]:[port]/[database]`
+</ParamField>
+
+<ParamField path="spring.datasource.username" type="string" required>
+  Database username with full access to the service schema.
+</ParamField>
+
+<ParamField path="spring.datasource.password" type="string" required>
+  Database password (use environment variables or secrets management).
+</ParamField>
+
+<ParamField path="spring.jpa.properties.hibernate.[default_schema]" type="string" required>
+  Default schema for Hibernate entities. Each service uses its own schema (e.g., `csp`, `eti`, `pii`).
+</ParamField>
+
+</Accordion>
+
+<Accordion title="H2 Database (Development)">
+
+Development profile uses H2 with PostgreSQL compatibility:
+
+```yaml
+spring:
+  datasource:
+    url: "jdbc:h2:./target/db/csp;MODE=PostgreSQL;DB_CLOSE_ON_EXIT=FALSE"
+    driver-class-name: org.h2.Driver
+    username: csp
+    password: csp
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+```
+
+<Info>
+  H2 database is stored in `target/db/` directory and persists between runs.
+</Info>
+
+</Accordion>
+
+<Accordion title="Oracle Database">
+
+For Oracle deployments:
+
+```yaml
+spring:
+  datasource:
+    url: jdbc:oracle:thin:@oracle12c:1521/ORCLPDB1.localdomain
+    driver-class-name: oracle.jdbc.OracleDriver
+    username: CSP_SGI
+    password: CSP_SGI
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.Oracle12cDialect
+```
+
+<Warning>
+  Oracle JDBC driver is included as a dependency but requires proper licensing.
+</Warning>
+
+</Accordion>
+
+<Accordion title="SQL Server">
+
+For SQL Server deployments:
+
+```yaml
+spring:
+  datasource:
+    url: jdbc:sqlserver://sqlserver:1433;databaseName=SGI
+    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+    username: CSP_SGI
+    password: CSP_SGI_2021
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.SQLServer2016Dialect
+```
+
+</Accordion>
+
+## Liquibase Migration Configuration
+
+<ParamField path="spring.liquibase.enabled" type="boolean" default="true">
+  Enable Liquibase database migrations.
+</ParamField>
+
+<ParamField path="spring.liquibase.contexts" type="string" default="none">
+  Liquibase contexts to execute. Use `dev` for sample data or `none` for production.
+</ParamField>
+
+<ParamField path="spring.liquibase.default-schema" type="string" required>
+  Schema for Liquibase to manage.
+</ParamField>
+
+<ParamField path="spring.liquibase.liquibase-schema" type="string" required>
+  Schema for Liquibase internal tables (usually same as default-schema).
+</ParamField>
+
+Example configuration:
+
+```yaml
+spring:
+  liquibase:
+    enabled: true
+    contexts: none  # Use 'dev' for sample data
+    default-schema: ${spring.jpa.properties.hibernate.[default_schema]}
+    liquibase-schema: ${spring.jpa.properties.hibernate.[default_schema]}
+    parameters:
+      schemaPrefix: ${spring.jpa.properties.hibernate.[default_schema]}.
+```
+
+## Service-to-Service Communication
+
+Services communicate via REST APIs. Configure service URLs for each environment.
+
+<Accordion title="Development Configuration">
+
+```yaml
+sgi:
+  rest:
+    api:
+      cnf-url: "http://localhost:4288"
+      com-url: "http://localhost:4286"
+      eti-url: "http://localhost:4280"
+      rep-url: "http://localhost:4287"
+      sgdoc-url: "http://localhost:8290/sgdoc"
+      sgp-url: "http://localhost:8290/sgp"
+      tp-url: "http://localhost:4285"
+      sgemp-url: "http://localhost:8290/sgemp"
+```
+
+</Accordion>
+
+<Accordion title="Production Configuration">
+
+```yaml
+sgi:
+  rest:
+    api:
+      cnf-url: "http://sgi-cnf-service:8080"
+      com-url: "http://sgi-com-service:8080"
+      eti-url: "http://sgi-eti-service:8080"
+      rep-url: "http://sgi-rep-service:8080"
+      sgdoc-url: "http://sgi-esb:8080/sgdoc"
+      sgp-url: "http://sgi-esb:8080/sgp"
+      tp-url: "http://sgi-tp-service:8080"
+      sgemp-url: "http://sgi-esb:8080/sgemp"
+```
+
+<Info>
+  In containerized environments, use service names as hostnames. Docker Compose/Kubernetes will resolve these automatically.
+</Info>
+
+</Accordion>
+
+### Service Communication Parameters
+
+<ParamField path="sgi.rest.api.cnf-url" type="string" required>
+  Configuration service URL for system-wide settings.
+</ParamField>
+
+<ParamField path="sgi.rest.api.com-url" type="string" required>
+  Communications service URL for email and notifications.
+</ParamField>
+
+<ParamField path="sgi.rest.api.eti-url" type="string" required>
+  Ethics Committee service URL.
+</ParamField>
+
+<ParamField path="sgi.rest.api.rep-url" type="string" required>
+  Reports service URL for document generation.
+</ParamField>
+
+<ParamField path="sgi.rest.api.tp-url" type="string" required>
+  Third Parties service URL.
+</ParamField>
+
+<ParamField path="sgi.rest.api.sgdoc-url" type="string">
+  External document management system URL (optional).
+</ParamField>
+
+<ParamField path="sgi.rest.api.sgp-url" type="string">
+  External personnel management system URL (optional).
+</ParamField>
+
+<ParamField path="sgi.rest.api.sgemp-url" type="string">
+  External enterprise management system URL (optional).
+</ParamField>
+
+## OAuth2 and Security Configuration
+
+Services use OAuth2 with Keycloak for authentication.
+
+### OAuth2 Client Configuration
+
+```yaml
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          # Frontend client for user login
+          sgi:
+            authorization-grant-type: authorization_code
+            client-id: front
+            client-name: SGI (user login)
+            provider: keycloak
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            scope: "openid,profile"
+          # Service client for backend-to-backend communication
+          csp-service:
+            authorization-grant-type: client_credentials
+            client-id: csp-service
+            client-secret: cf693c2b-bdaf-4f98-87db-e7996b917b0a
+            client-name: SGI (service login)
+            provider: keycloak
+            scope: sgi-cnf,sgi-com,sgi-eti,sgi-sgp,sgi-tp
+        provider:
+          keycloak:
+            issuer-uri: http://localhost:8080/auth/realms/sgi
+            user-name-attribute: user_ref_id
+```
+
+<Warning>
+  **Change client secrets before production deployment!** The example secrets in the repository are for development only.
+</Warning>
+
+<ParamField path="spring.security.oauth2.client.provider.keycloak.issuer-uri" type="string" required>
+  Keycloak realm issuer URI.
+  
+  **Format:** `http://[keycloak-host]:[port]/auth/realms/[realm-name]`
+</ParamField>
+
+<ParamField path="spring.security.oauth2.client.registration.[service].client-id" type="string" required>
+  OAuth2 client ID registered in Keycloak.
+</ParamField>
+
+<ParamField path="spring.security.oauth2.client.registration.[service].client-secret" type="string" required>
+  OAuth2 client secret (use environment variables for production).
+</ParamField>
+
+### Resource Server Configuration
+
+```yaml
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${spring.security.oauth2.client.provider.keycloak.issuer-uri}/protocol/openid-connect/certs
+          user-name-claim: user_ref_id
+```
+
+<ParamField path="spring.security.oauth2.resourceserver.jwt.jwk-set-uri" type="string" required>
+  JSON Web Key Set endpoint for validating JWT tokens.
+</ParamField>
+
+<ParamField path="spring.security.oauth2.resourceserver.jwt.user-name-claim" type="string" default="user_ref_id">
+  JWT claim to use as the username.
+</ParamField>
+
+## Frontend Configuration
+
+The Angular frontend is configured via TypeScript environment files.
+
+### Environment Configuration Files
+
+<Accordion title="Development (environment.ts)">
+
+```typescript
+export const environment = {
+  production: false,
+  serviceServers: {
+    eti: '/api/eti',
+    sgp: '/api/sgp',
+    csp: '/api/csp',
+    usr: '/api/usr',
+    sgdoc: '/api/sgdoc',
+    sge: '/api/sge',
+    sgemp: '/api/sgemp',
+    sgepii: '/api/sgepii',
+    sgo: '/api/sgo',
+    pii: '/api/pii',
+    rel: '/api/rel',
+    rep: '/api/rep',
+    prc: '/api/prc',
+    cnf: '/api/cnf',
+    com: '/api/com',
+    tp: '/api/tp',
+    eer: '/api/eer'
+  },
+  loggerConfig: {
+    enableSourceMaps: true,
+    level: NgxLoggerLevel.DEBUG
+  },
+  authConfig: {
+    mode: SgiAuthMode.Keycloak,
+    ssoRealm: 'sgi',
+    ssoClientId: 'front',
+    ssoUrl: '/auth',
+    protectedResources: [
+      /\/api\/eti(?!\/config\/time-zone$).*/i,
+      /\/api\/csp(?!\/public\/|\/config\/time-zone$).*/i,
+      /\/api\/usr(?!\/public\/|\/config\/time-zone$).*/i,
+      // ... more patterns
+    ]
+  },
+  defaultTimeZone: 'Europe/Madrid'
+};
+```
+
+</Accordion>
+
+<Accordion title="Production (environment.prod.ts)">
+
+```typescript
+export const environment = {
+  production: true,
+  serviceServers: {
+    eti: '/api/eti',
+    csp: '/api/csp',
+    // ... same as development
+  },
+  loggerConfig: {
+    enableSourceMaps: true,
+    level: NgxLoggerLevel.WARN  // Less verbose in production
+  },
+  authConfig: {
+    mode: SgiAuthMode.Keycloak,
+    ssoRealm: 'sgi',
+    ssoClientId: 'front',
+    ssoUrl: '/auth',
+    protectedResources: [ /* ... */ ]
+  },
+  defaultTimeZone: 'Europe/Madrid'
+};
+```
+
+</Accordion>
+
+### Frontend Configuration Parameters
+
+<ParamField path="serviceServers" type="object" required>
+  Map of service identifiers to their API endpoints. All paths are relative and proxied through Nginx.
+</ParamField>
+
+<ParamField path="authConfig.ssoRealm" type="string" default="sgi">
+  Keycloak realm name.
+</ParamField>
+
+<ParamField path="authConfig.ssoClientId" type="string" default="front">
+  Keycloak client ID for the frontend application.
+</ParamField>
+
+<ParamField path="authConfig.ssoUrl" type="string" default="/auth">
+  Relative path to Keycloak authentication server.
+</ParamField>
+
+<ParamField path="defaultTimeZone" type="string" default="Europe/Madrid">
+  Default time zone for date/time display.
+</ParamField>
+
+## Environment Variables
+
+For production deployments, override configuration using environment variables:
+
+```bash
+# Database configuration
+export SPRING_DATASOURCE_URL="jdbc:postgresql://prod-db:5432/csp"
+export SPRING_DATASOURCE_USERNAME="sgi_prod_user"
+export SPRING_DATASOURCE_PASSWORD="secure_password_here"
+
+# Keycloak configuration
+export SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_ISSUER_URI="https://auth.example.com/auth/realms/sgi"
+export SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_CSP_SERVICE_CLIENT_SECRET="production_secret_here"
+
+# Service URLs
+export SGI_REST_API_CNF_URL="http://sgi-cnf-service:8080"
+export SGI_REST_API_COM_URL="http://sgi-com-service:8080"
+
+# Application settings
+export SGI_WEB_URL="https://sgi.example.com"
+export SGI_TIME_ZONE="Europe/Madrid"
+
+# Server port
+export SERVER_PORT=8080
+```
+
+## Docker Environment Configuration
+
+Example Docker Compose environment configuration:
+
+```yaml
+services:
+  sgi-csp-service:
+    image: sgi-csp-service:latest
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/csp
+      SPRING_DATASOURCE_USERNAME: ${DB_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_ISSUER_URI: http://sgi-auth:8080/auth/realms/sgi
+      SGI_REST_API_CNF_URL: http://sgi-cnf-service:8080
+      SGI_REST_API_COM_URL: http://sgi-com-service:8080
+    ports:
+      - "4281:8080"
+    depends_on:
+      - postgres
+      - sgi-auth
+```
+
+## Configuration Best Practices
+
+<Warning>
+  **Security Considerations:**
+  - Never commit secrets or passwords to version control
+  - Use environment variables or secrets management tools (HashiCorp Vault, AWS Secrets Manager, etc.)
+  - Rotate client secrets regularly (see [Authentication Setup](/deployment/authentication))
+  - Use HTTPS in production with valid TLS certificates
+  - Restrict database user permissions to minimum required
+</Warning>
+
+<Info>
+  **Performance Tips:**
+  - Enable connection pooling for database connections
+  - Configure appropriate JVM heap sizes (`-Xmx` parameter)
+  - Use profile-specific logging levels (DEBUG for dev, WARN/ERROR for prod)
+  - Enable actuator endpoints for monitoring and health checks
+</Info>
+
+## Next Steps
+
+- [Authentication Setup](/deployment/authentication) - Configure Keycloak and import the SGI realm
+- [Architecture Overview](/architecture) - Understand the system architecture and components
+- [API Reference](/api/csp-service) - Explore the REST API endpoints

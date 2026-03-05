@@ -1,0 +1,379 @@
+---
+title: 'CSP Service API'
+description: 'Convocatorias, Solicitudes y Proyectos - Grant Calls, Applications and Projects'
+icon: 'briefcase'
+---
+
+## Overview
+
+The CSP (Convocatorias, Solicitudes y Proyectos) service manages the complete lifecycle of research funding:
+
+- **Convocatorias** - Grant calls and funding opportunities
+- **Solicitudes** - Grant applications and submissions
+- **Proyectos** - Funded research projects
+
+Base URL: `/convocatorias`, `/solicitudes`, `/proyectos`
+
+## Authentication
+
+All endpoints require JWT authentication with appropriate role-based permissions:
+- `CSP-CON-*` - Convocatoria permissions
+- `CSP-SOL-*` - Solicitud permissions
+- `CSP-PRO-*` - Proyecto permissions
+
+<Note>
+Permissions ending in `-C`, `-E`, `-V`, `-B`, `-R` indicate Create, Edit, View, Delete, and Reactivate respectively.
+</Note>
+
+---
+
+## Convocatorias (Grant Calls)
+
+### List Convocatorias
+
+<CodeGroup>
+```bash GET /convocatorias/investigador
+curl -X GET "https://api.example.com/convocatorias/investigador?q=activo==true" \
+  -H "Authorization: Bearer {token}"
+```
+</CodeGroup>
+
+<ParamField query="q" type="string">
+  RSQL filter query (e.g., `activo==true;titulo=like='Research'`)
+</ParamField>
+
+<ParamField query="s" type="string">
+  Sort specification (e.g., `fechaPublicacion,desc`)
+</ParamField>
+
+<ParamField query="page" type="integer">
+  Page number (zero-based)
+</ParamField>
+
+<ParamField query="size" type="integer" default="10">
+  Page size
+</ParamField>
+
+<ResponseField name="content" type="array">
+  Array of Convocatoria objects
+  <Expandable title="Convocatoria object">
+    <ResponseField name="id" type="long">Unique identifier</ResponseField>
+    <ResponseField name="titulo" type="string">Grant call title</ResponseField>
+    <ResponseField name="fechaPublicacion" type="date">Publication date</ResponseField>
+    <ResponseField name="fechaProvisional" type="date">Provisional deadline</ResponseField>
+    <ResponseField name="fechaConcesion" type="date">Award date</ResponseField>
+    <ResponseField name="estado" type="object">Current state</ResponseField>
+    <ResponseField name="unidadGestionRef" type="string">Management unit reference</ResponseField>
+    <ResponseField name="modeloEjecucion" type="object">Execution model</ResponseField>
+    <ResponseField name="activo" type="boolean">Active status</ResponseField>
+  </Expandable>
+</ResponseField>
+
+### Get Convocatoria by ID
+
+<CodeGroup>
+```bash GET /convocatorias/{id}
+curl -X GET "https://api.example.com/convocatorias/123" \
+  -H "Authorization: Bearer {token}"
+```
+</CodeGroup>
+
+<ParamField path="id" type="long" required>
+  Convocatoria identifier
+</ParamField>
+
+### Create Convocatoria
+
+<CodeGroup>
+```bash POST /convocatorias
+curl -X POST "https://api.example.com/convocatorias" \
+  -H "Authorization: Bearer {token}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "titulo": "National Research Grant 2024",
+    "fechaPublicacion": "2024-01-15",
+    "unidadGestionRef": "UG-001",
+    "modeloEjecucion": {"id": 1},
+    "activo": true
+  }'
+```
+</CodeGroup>
+
+**Required Permission:** `CSP-CON-C`
+
+### Update Convocatoria
+
+<CodeGroup>
+```bash PUT /convocatorias/{id}
+curl -X PUT "https://api.example.com/convocatorias/123" \
+  -H "Authorization: Bearer {token}" \
+  -H "Content-Type: application/json" \
+  -d '{"titulo": "Updated Title"}'
+```
+</CodeGroup>
+
+**Required Permission:** `CSP-CON-E`
+
+### Convocatoria Sub-Resources
+
+#### Get Convocatoria Phases
+
+<CodeGroup>
+```bash GET /convocatorias/{id}/convocatoriafases
+curl -X GET "https://api.example.com/convocatorias/123/convocatoriafases" \
+  -H "Authorization: Bearer {token}"
+```
+</CodeGroup>
+
+Returns the phases/milestones defined for a grant call.
+
+#### Get Funding Entities
+
+<CodeGroup>
+```bash GET /convocatorias/{id}/convocatoriaentidadfinanciadoras
+curl -X GET "https://api.example.com/convocatorias/123/convocatoriaentidadfinanciadoras" \
+  -H "Authorization: Bearer {token}"
+```
+</CodeGroup>
+
+#### Get Convocatoria Documents
+
+<CodeGroup>
+```bash GET /convocatorias/{id}/convocatoriadocumentos
+curl -X GET "https://api.example.com/convocatorias/123/convocatoriadocumentos" \
+  -H "Authorization: Bearer {token}"
+```
+</CodeGroup>
+
+---
+
+## Solicitudes (Applications)
+
+### List Solicitudes
+
+<CodeGroup>
+```bash GET /solicitudes
+curl -X GET "https://api.example.com/solicitudes?q=estado.estado==BORRADOR" \
+  -H "Authorization: Bearer {token}"
+```
+</CodeGroup>
+
+Returns applications within the user's management unit.
+
+<ParamField query="q" type="string">
+  RSQL filter query
+</ParamField>
+
+<ResponseField name="content" type="array">
+  Array of Solicitud objects
+  <Expandable title="Solicitud object">
+    <ResponseField name="id" type="long">Unique identifier</ResponseField>
+    <ResponseField name="titulo" type="string">Application title</ResponseField>
+    <ResponseField name="convocatoriaId" type="long">Related grant call ID</ResponseField>
+    <ResponseField name="estado" type="object">Current state</ResponseField>
+    <ResponseField name="solicitanteRef" type="string">Applicant reference</ResponseField>
+    <ResponseField name="creadorRef" type="string">Creator reference</ResponseField>
+    <ResponseField name="activo" type="boolean">Active status</ResponseField>
+  </Expandable>
+</ResponseField>
+
+### Get Solicitud by ID
+
+<CodeGroup>
+```bash GET /solicitudes/{id}
+curl -X GET "https://api.example.com/solicitudes/456" \
+  -H "Authorization: Bearer {token}"
+```
+</CodeGroup>
+
+### Create Solicitud
+
+<CodeGroup>
+```bash POST /solicitudes
+curl -X POST "https://api.example.com/solicitudes" \
+  -H "Authorization: Bearer {token}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "titulo": "My Research Proposal",
+    "convocatoriaId": 123,
+    "solicitanteRef": "USR-001"
+  }'
+```
+</CodeGroup>
+
+**Required Permission:** `CSP-SOL-C` or `CSP-SOL-INV-C`
+
+### Update Solicitud Status
+
+<CodeGroup>
+```bash PATCH /solicitudes/{id}/cambiar-estado
+curl -X PATCH "https://api.example.com/solicitudes/456/cambiar-estado" \
+  -H "Authorization: Bearer {token}" \
+  -H "Content-Type: application/json" \
+  -d '{"estado": "PRESENTADA"}'
+```
+</CodeGroup>
+
+Changes the application state (e.g., from BORRADOR to PRESENTADA).
+
+### Solicitud Sub-Resources
+
+#### Get Application Project Data
+
+<CodeGroup>
+```bash GET /solicitudes/{id}/solicitudproyecto
+curl -X GET "https://api.example.com/solicitudes/456/solicitudproyecto" \
+  -H "Authorization: Bearer {token}"
+```
+</CodeGroup>
+
+#### Get Application Budget
+
+<CodeGroup>
+```bash GET /solicitudes/{id}/solicitudproyectopresupuestos
+curl -X GET "https://api.example.com/solicitudes/456/solicitudproyectopresupuestos" \
+  -H "Authorization: Bearer {token}"
+```
+</CodeGroup>
+
+#### Get Application Documents
+
+<CodeGroup>
+```bash GET /solicitudes/{id}/solicituddocumentos
+curl -X GET "https://api.example.com/solicitudes/456/solicituddocumentos" \
+  -H "Authorization: Bearer {token}"
+```
+</CodeGroup>
+
+---
+
+## Proyectos (Projects)
+
+### List Projects
+
+<CodeGroup>
+```bash GET /proyectos
+curl -X GET "https://api.example.com/proyectos?q=activo==true" \
+  -H "Authorization: Bearer {token}"
+```
+</CodeGroup>
+
+Returns active projects within the user's management unit.
+
+<ResponseField name="content" type="array">
+  Array of Proyecto objects
+  <Expandable title="Proyecto object">
+    <ResponseField name="id" type="long">Unique identifier</ResponseField>
+    <ResponseField name="titulo" type="string">Project title</ResponseField>
+    <ResponseField name="fechaInicio" type="date">Start date</ResponseField>
+    <ResponseField name="fechaFin" type="date">End date</ResponseField>
+    <ResponseField name="estado" type="object">Current state</ResponseField>
+    <ResponseField name="solicitudId" type="long">Originating application ID</ResponseField>
+    <ResponseField name="convocatoriaId" type="long">Grant call ID</ResponseField>
+    <ResponseField name="activo" type="boolean">Active status</ResponseField>
+  </Expandable>
+</ResponseField>
+
+### Get Project by ID
+
+<CodeGroup>
+```bash GET /proyectos/{id}
+curl -X GET "https://api.example.com/proyectos/789" \
+  -H "Authorization: Bearer {token}"
+```
+</CodeGroup>
+
+### Create Project from Application
+
+<CodeGroup>
+```bash POST /proyectos/{solicitudId}/solicitud
+curl -X POST "https://api.example.com/proyectos/456/solicitud" \
+  -H "Authorization: Bearer {token}" \
+  -H "Content-Type: application/json" \
+  -d '{"fechaInicio": "2024-03-01"}'
+```
+</CodeGroup>
+
+Creates a new project from an approved application.
+
+**Required Permission:** `CSP-PRO-C`
+
+### Update Project Status
+
+<CodeGroup>
+```bash PATCH /proyectos/{id}/cambiar-estado
+curl -X PATCH "https://api.example.com/proyectos/789/cambiar-estado" \
+  -H "Authorization: Bearer {token}" \
+  -H "Content-Type: application/json" \
+  -d '{"estado": "CONCEDIDO"}'
+```
+</CodeGroup>
+
+### Project Sub-Resources
+
+#### Get Project Team
+
+<CodeGroup>
+```bash GET /proyectos/{id}/proyectoequipos
+curl -X GET "https://api.example.com/proyectos/789/proyectoequipos" \
+  -H "Authorization: Bearer {token}"
+```
+</CodeGroup>
+
+Returns project team members with their roles and participation periods.
+
+#### Get Project Budget
+
+<CodeGroup>
+```bash GET /proyectos/{id}/anualidades
+curl -X GET "https://api.example.com/proyectos/789/anualidades" \
+  -H "Authorization: Bearer {token}"
+```
+</CodeGroup>
+
+#### Get Project Documents
+
+<CodeGroup>
+```bash GET /proyectos/{id}/documentos
+curl -X GET "https://api.example.com/proyectos/789/documentos" \
+  -H "Authorization: Bearer {token}"
+```
+</CodeGroup>
+
+#### Get Project Phases
+
+<CodeGroup>
+```bash GET /proyectos/{id}/proyectofases
+curl -X GET "https://api.example.com/proyectos/789/proyectofases" \
+  -H "Authorization: Bearer {token}"
+```
+</CodeGroup>
+
+---
+
+## Error Responses
+
+<ResponseField name="status" type="integer">
+  HTTP status code
+</ResponseField>
+
+<ResponseField name="error" type="string">
+  Error type
+</ResponseField>
+
+<ResponseField name="message" type="string">
+  Error message
+</ResponseField>
+
+<ResponseField name="path" type="string">
+  Request path
+</ResponseField>
+
+### Common Error Codes
+
+- `400` - Bad Request: Invalid parameters or request body
+- `401` - Unauthorized: Missing or invalid authentication token
+- `403` - Forbidden: Insufficient permissions
+- `404` - Not Found: Resource does not exist
+- `409` - Conflict: Business rule violation
+- `500` - Internal Server Error

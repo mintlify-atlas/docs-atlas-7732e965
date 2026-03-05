@@ -1,0 +1,402 @@
+---
+title: Installation
+description: Install and deploy the HERCULES SGI system
+---
+
+This guide covers the installation of the HERCULES SGI system, including all backend services, the authentication server, and the frontend application.
+
+## System Requirements
+
+Before installing SGI, ensure your system meets the following requirements:
+
+<ParamField path="Java" type="JDK 21+" required>
+  The backend services are built with Java 21. Eclipse Temurin 21 is recommended.
+</ParamField>
+
+<ParamField path="PostgreSQL" type="Database" required>
+  Primary database for production deployments. Tested with PostgreSQL 10+.
+</ParamField>
+
+<ParamField path="Keycloak" type="13.0.0" required>
+  Authentication and authorization server. Must use version 13.0.0 as specified in the system.
+</ParamField>
+
+<ParamField path="Node.js" type="14+" required>
+  Required for building the frontend application (Angular 11).
+</ParamField>
+
+<ParamField path="Maven" type="3.6+" required>
+  Build tool for Java backend services.
+</ParamField>
+
+<ParamField path="Nginx" type="1.17+">
+  Web server for serving the frontend application in production.
+</ParamField>
+
+### Optional Requirements
+
+- **Oracle Database**: Alternative to PostgreSQL (requires Oracle 12c+)
+- **SQL Server**: Alternative to PostgreSQL (requires SQL Server 2016+)
+- **Docker & Docker Compose**: For containerized deployment
+
+## Installation Methods
+
+<CodeGroup>
+
+```bash Docker (Recommended)
+# Clone the repository
+git clone https://github.com/HerculesCRUE/SGI.git
+cd SGI
+
+# Build all services
+mvn clean package -DskipTests
+
+# Build Docker images
+docker build -t sgi-auth:latest ./sgi-auth
+docker build -t sgi-csp-service:latest ./sgi-csp-service
+docker build -t sgi-eti-service:latest ./sgi-eti-service
+docker build -t sgi-pii-service:latest ./sgi-pii-service
+docker build -t sgi-cnf-service:latest ./sgi-cnf-service
+docker build -t sgi-com-service:latest ./sgi-com-service
+docker build -t sgi-tp-service:latest ./sgi-tp-service
+docker build -t sgi-usr-service:latest ./sgi-usr-service
+docker build -t sgi-rel-service:latest ./sgi-rel-service
+docker build -t sgi-rep-service:latest ./sgi-rep-service
+docker build -t sgi-prc-service:latest ./sgi-prc-service
+docker build -t sgi-eer-service:latest ./sgi-eer-service
+
+# Build frontend
+cd sgi-webapp
+npm install
+npm run build-prod
+cd ..
+docker build -t sgi-webapp:latest ./sgi-webapp
+```
+
+```bash Source Build
+# Clone the repository
+git clone https://github.com/HerculesCRUE/SGI.git
+cd SGI
+
+# Build all backend services
+mvn clean install -DskipTests
+
+# Build frontend
+cd sgi-webapp
+npm install
+npm run build-prod
+```
+
+</CodeGroup>
+
+## Installation Steps
+
+<Steps>
+
+<Step title="Install Java and Maven">
+  Install Java Development Kit 21 and Maven:
+  
+  ```bash
+  # Using SDKMAN (recommended)
+  curl -s "https://get.sdkman.io" | bash
+  sdk install java 21-tem
+  sdk install maven
+  
+  # Verify installation
+  java -version
+  mvn -version
+  ```
+</Step>
+
+<Step title="Clone the Repository">
+  Clone the SGI repository from GitHub:
+  
+  ```bash
+  git clone https://github.com/HerculesCRUE/SGI.git
+  cd SGI
+  ```
+</Step>
+
+<Step title="Set Up the Database">
+  Create PostgreSQL databases for each service:
+  
+  ```sql
+  -- Connect to PostgreSQL as superuser
+  CREATE DATABASE csp;
+  CREATE DATABASE eti;
+  CREATE DATABASE pii;
+  CREATE DATABASE cnf;
+  CREATE DATABASE com;
+  CREATE DATABASE tp;
+  CREATE DATABASE usr;
+  CREATE DATABASE rel;
+  CREATE DATABASE rep;
+  CREATE DATABASE prc;
+  CREATE DATABASE eer;
+  
+  -- Create users and grant permissions
+  CREATE USER sgi_user WITH PASSWORD 'your_secure_password';
+  GRANT ALL PRIVILEGES ON DATABASE csp TO sgi_user;
+  GRANT ALL PRIVILEGES ON DATABASE eti TO sgi_user;
+  GRANT ALL PRIVILEGES ON DATABASE pii TO sgi_user;
+  GRANT ALL PRIVILEGES ON DATABASE cnf TO sgi_user;
+  GRANT ALL PRIVILEGES ON DATABASE com TO sgi_user;
+  GRANT ALL PRIVILEGES ON DATABASE tp TO sgi_user;
+  GRANT ALL PRIVILEGES ON DATABASE usr TO sgi_user;
+  GRANT ALL PRIVILEGES ON DATABASE rel TO sgi_user;
+  GRANT ALL PRIVILEGES ON DATABASE rep TO sgi_user;
+  GRANT ALL PRIVILEGES ON DATABASE prc TO sgi_user;
+  GRANT ALL PRIVILEGES ON DATABASE eer TO sgi_user;
+  ```
+  
+  <Info>
+    Database schemas are automatically created by Liquibase migrations when you first start each service.
+  </Info>
+</Step>
+
+<Step title="Build Backend Services">
+  Build all backend services using Maven:
+  
+  ```bash
+  # Build the parent project and framework
+  mvn clean install -DskipTests
+  
+  # Or build specific services
+  cd sgi-csp-service
+  mvn clean package -DskipTests
+  ```
+  
+  This will:
+  - Compile Java source code
+  - Run annotation processors (Lombok, Hibernate, etc.)
+  - Package services as executable JAR files
+  - Generate build artifacts in `target/` directories
+</Step>
+
+<Step title="Run Database Migrations">
+  Database migrations run automatically when services start. For manual execution:
+  
+  ```bash
+  cd sgi-csp-service
+  mvn liquibase:update
+  ```
+  
+  <Warning>
+    Ensure database connection properties are configured in `application.yml` before running migrations.
+  </Warning>
+</Step>
+
+<Step title="Install and Build Frontend">
+  Build the Angular frontend application:
+  
+  ```bash
+  cd sgi-webapp
+  
+  # Install Node.js dependencies
+  npm install
+  
+  # Build for development
+  npm run build
+  
+  # Or build for production
+  npm run build-prod
+  ```
+  
+  The build output will be in `dist/sgi-webapp/`.
+</Step>
+
+<Step title="Deploy Frontend with Nginx">
+  Configure Nginx to serve the frontend:
+  
+  ```nginx
+  server {
+      listen 80;
+      server_name your-domain.com;
+      
+      root /usr/share/nginx/html;
+      index index.html;
+      
+      location / {
+          try_files $uri $uri/ /index.html;
+      }
+      
+      # Proxy API requests to backend services
+      location /api/csp {
+          proxy_pass http://sgi-csp-service:8080;
+          proxy_set_header Host $host;
+          proxy_set_header X-Real-IP $remote_addr;
+      }
+      
+      location /api/eti {
+          proxy_pass http://sgi-eti-service:8080;
+          proxy_set_header Host $host;
+          proxy_set_header X-Real-IP $remote_addr;
+      }
+      
+      # Add similar blocks for other services...
+      
+      location /auth {
+          proxy_pass http://sgi-auth:8080/auth;
+          proxy_set_header Host $host;
+          proxy_set_header X-Real-IP $remote_addr;
+      }
+  }
+  ```
+  
+  Copy the built frontend files:
+  
+  ```bash
+  cp -r dist/sgi-webapp/* /usr/share/nginx/html/
+  systemctl restart nginx
+  ```
+</Step>
+
+<Step title="Start Backend Services">
+  Start each backend service:
+  
+  ```bash
+  # Start a service with the production profile
+  java -jar sgi-csp-service/target/sgi-csp-service-1.1.0-SNAPSHOT-exec.jar \
+    --spring.profiles.active=prod
+  
+  # Or use Spring Boot Maven plugin for development
+  cd sgi-csp-service
+  mvn spring-boot:run -Dspring-boot.run.profiles=dev
+  ```
+  
+  <Info>
+    Services expose port 8080 by default. Configure different ports using `server.port` property.
+  </Info>
+</Step>
+
+</Steps>
+
+## Docker Deployment
+
+### Building Docker Images
+
+Each service includes a Dockerfile for containerized deployment.
+
+#### Backend Services
+
+Backend services use Eclipse Temurin 21 Alpine base image:
+
+```dockerfile
+# Example: sgi-csp-service/Dockerfile
+FROM eclipse-temurin:21-jre-alpine
+EXPOSE 8080
+COPY target/dependency/BOOT-INF/lib /app/lib
+COPY target/dependency/META-INF /app/META-INF
+COPY target/dependency/BOOT-INF/classes /app
+ENTRYPOINT java -Duser.timezone=UTC -Djava.security.egd=file:/dev/./urandom -cp "app:app/lib/*" org.crue.hercules.sgi.csp.CspApplication
+```
+
+Build steps:
+
+```bash
+# First, unpack the JAR for Docker layers
+cd sgi-csp-service
+mvn dependency:unpack -Dartifact=io.github.herculesproject.sgi:sgi-csp-service:1.1.0-SNAPSHOT:jar:exec -DoutputDirectory=target/dependency
+
+# Build the Docker image
+docker build -t sgi-csp-service:1.1.0 .
+```
+
+#### Frontend Application
+
+The frontend uses Nginx 1.17 Alpine:
+
+```dockerfile
+# sgi-webapp/Dockerfile
+FROM nginx:1.17-alpine
+COPY docker/nginx.conf /etc/nginx/nginx.conf
+RUN rm -rf /usr/share/nginx/html/*
+COPY dist/sgi-webapp /usr/share/nginx/html
+EXPOSE 80
+```
+
+Build steps:
+
+```bash
+cd sgi-webapp
+npm run build-prod
+docker build -t sgi-webapp:1.1.0 .
+```
+
+### Authentication Server (Keycloak)
+
+The sgi-auth service extends the official Keycloak 13.0.0 image:
+
+```dockerfile
+FROM quay.io/keycloak/keycloak:13.0.0
+
+# Add Oracle JDBC driver
+ADD --chown=1000:0 https://repo1.maven.org/maven2/com/oracle/database/jdbc/ojdbc10/19.3.0.0/ojdbc10-19.3.0.0.jar /opt/jboss/keycloak/modules/system/layers/base/com/oracle/jdbc/main/driver/ojdbc.jar
+
+# Custom SAML broker mappers
+COPY broker-saml-mappers/target/broker-saml-mappers*.jar /opt/jboss/keycloak/standalone/deployments/
+
+# Realm configuration
+COPY realm /realm
+```
+
+Build the authentication server:
+
+```bash
+cd sgi-auth
+mvn clean package -DskipTests
+docker build -t sgi-auth:1.1.0 .
+```
+
+## Verification
+
+After installation, verify the deployment:
+
+```bash
+# Check backend service health
+curl http://localhost:4281/actuator/health
+
+# Check frontend is accessible
+curl http://localhost:80
+
+# Check Keycloak is running
+curl http://localhost:8080/auth
+```
+
+## Next Steps
+
+- [Configure Services](/deployment/configuration) - Set up environment variables and service connections
+- [Authentication Setup](/deployment/authentication) - Configure Keycloak and import the SGI realm
+- [Architecture Overview](/architecture) - Understand the system architecture and deployment patterns
+
+## Troubleshooting
+
+### Build Failures
+
+If Maven builds fail:
+
+```bash
+# Clear local repository cache
+rm -rf ~/.m2/repository/io/github/herculesproject
+
+# Rebuild with verbose output
+mvn clean install -X
+```
+
+### Database Connection Issues
+
+Check database connectivity:
+
+```bash
+# Test PostgreSQL connection
+psql -h localhost -U sgi_user -d csp -c "SELECT 1;"
+```
+
+### Port Conflicts
+
+If services fail to start due to port conflicts, configure alternative ports in `application.yml`:
+
+```yaml
+server:
+  port: 8081  # Change from default 8080
+```

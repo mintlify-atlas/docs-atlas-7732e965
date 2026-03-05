@@ -1,0 +1,426 @@
+---
+title: Authorization
+description: Role-based access control and permission management in HERCULES SGI
+---
+
+HERCULES SGI implements a comprehensive role-based access control (RBAC) system through Keycloak, providing fine-grained permissions for all system operations.
+
+## Overview
+
+Authorization in HERCULES SGI is based on:
+
+- **Realm Roles**: Assigned to users in Keycloak
+- **JWT Claims**: Roles are embedded in access tokens
+- **Method Security**: Spring Security annotations protect endpoints
+- **Custom Expressions**: SGI-specific authorization logic
+
+## Role Naming Convention
+
+Roles follow a hierarchical naming pattern:
+
+```
+{MODULE}-{ENTITY}-{PERMISSION}
+```
+
+### Components
+
+- **MODULE**: The system module (CSP, ETI, PII, PRC, etc.)
+- **ENTITY**: The resource or entity type
+- **PERMISSION**: The action allowed (C, R, E, B, V, etc.)
+
+### Permission Types
+
+| Code | Permission | Description |
+|------|------------|-------------|
+| `C` | Create | Create new resources |
+| `R` | Read | View resource details |
+| `E` | Edit | Modify existing resources |
+| `B` | Delete | Remove resources |
+| `V` | View | List and query resources |
+| `INV` | Investigator | Researcher-specific operations |
+| `MOD` | Moderator | Moderation capabilities |
+| `EVAL` | Evaluator | Evaluation permissions |
+
+## Core Modules and Roles
+
+### CSP Module (Research Projects)
+
+The CSP module manages research projects, grants, and related entities.
+
+<AccordionGroup>
+  <Accordion title="Project Management (CSP-PRO)">
+    **Available Roles:**
+    - `CSP-PRO-C`: Create projects
+    - `CSP-PRO-E`: Edit projects
+    - `CSP-PRO-B`: Delete projects
+    - `CSP-PRO-V`: View project list
+    - `CSP-PRO-R`: Read project details
+    - `CSP-PRO-INV-VR`: Investigator view rights
+    - `CSP-PRO-MOD-V`: Moderator view
+
+    **Example Usage:**
+    ```java
+    @PreAuthorize("hasAuthority('CSP-PRO-C')")
+    public ProyectoDto createProject(ProyectoDto proyecto) {
+        // Create project logic
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="Grants (CSP-SOL)">
+    **Available Roles:**
+    - `CSP-SOL-C`: Create grant applications
+    - `CSP-SOL-E`: Edit applications
+    - `CSP-SOL-B`: Delete applications
+    - `CSP-SOL-V`: View applications
+    - `CSP-SOL-R`: Read application details
+    - `CSP-SOL-INV-C`: Investigator create
+    - `CSP-SOL-INV-V`: Investigator view
+    - `CSP-SOL-ETI-V`: Ethics committee view
+  </Accordion>
+
+  <Accordion title="Contracts (CSP-CON)">
+    **Available Roles:**
+    - `CSP-CON-C`: Create contracts
+    - `CSP-CON-E`: Edit contracts
+    - `CSP-CON-B`: Delete contracts
+    - `CSP-CON-V`: View contracts
+    - `CSP-CON-R`: Read contract details
+    - `CSP-CON-INV-V`: Investigator view
+  </Accordion>
+
+  <Accordion title="Budget Execution (CSP-EJEC)">
+    **Available Roles:**
+    - `CSP-EJEC-E`: Edit budget execution
+    - `CSP-EJEC-V`: View execution status
+    - `CSP-EJEC-INV-VR`: Investigator view rights
+  </Accordion>
+</AccordionGroup>
+
+### ETI Module (Ethics Committee)
+
+Manages ethics evaluations and committee operations.
+
+**Key Roles:**
+- `ETI-ACT-C`: Create ethics committee minutes
+- `ETI-ACT-E`: Edit minutes
+- `ETI-ACT-V`: View minutes
+- `ETI-EVC-EVAL`: Evaluate ethics applications
+- `ETI-EVC-EVALR`: Reviewer evaluation
+- `ETI-EVC-V`: View evaluations
+- `ETI-MEM-V`: View committee members
+- `ETI-MEM-INV-CR`: Investigator create rights
+- `ETI-PEV-INV-VR`: Investigator evaluation view
+- `ETI-CNV-C`: Create meetings
+- `ETI-CNV-V`: View meetings
+
+### PII Module (Intellectual Property)
+
+Manages patents, trademarks, and intellectual property.
+
+**Key Roles:**
+- `PII-INV-C`: Create inventions
+- `PII-INV-E`: Edit inventions
+- `PII-INV-V`: View inventions
+- `PII-INV-R`: Read invention details
+- `PII-TPR-C`: Create patents
+- `PII-TPR-E`: Edit patents
+- `PII-TPR-V`: View patents
+- `PII-VPR-C`: Create patent valuations
+- `PII-VPR-E`: Edit valuations
+- `PII-SEA-E`: Edit sectors
+- `PII-TRE-C`: Create contracts
+
+### PRC Module (Production)
+
+Manages production validation and reporting.
+
+**Key Roles:**
+- `PRC-VAL-E`: Edit validations
+- `PRC-VAL-V`: View validations
+- `PRC-VAL-INV-ER`: Investigator edit rights
+- `PRC-CON-C`: Create configurations
+- `PRC-CON-E`: Edit configurations
+- `PRC-CON-V`: View configurations
+- `PRC-INF-G`: Generate reports
+- `PRC-INF-INV-GR`: Investigator generate reports
+
+### Additional Modules
+
+- **EER**: Business entities registry
+- **REL**: Relationships management
+- **ESB**: External services integration
+- **ADM-CNF**: System administration and configuration
+
+## Making Authorized API Requests
+
+All API requests must include a valid access token in the Authorization header:
+
+<ParamField header="Authorization" type="string" required>
+  Bearer token obtained from Keycloak authentication
+  
+  Format: `Bearer {access_token}`
+</ParamField>
+
+### Example Requests
+
+<CodeGroup>
+```bash cURL - List Projects
+curl -X GET http://localhost:4281/proyectos \
+  -H "Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..." \
+  -H "Content-Type: application/json"
+```
+
+```bash cURL - Create Project
+curl -X POST http://localhost:4281/proyectos \
+  -H "Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "titulo": "New Research Project",
+    "fechaInicio": "2026-01-01",
+    "fechaFin": "2027-12-31"
+  }'
+```
+
+```javascript JavaScript - Fetch with Authorization
+const response = await fetch('http://localhost:4281/proyectos', {
+  method: 'GET',
+  headers: {
+    'Authorization': `Bearer ${accessToken}`,
+    'Content-Type': 'application/json'
+  }
+});
+
+const projects = await response.json();
+```
+
+```python Python - Requests Library
+import requests
+
+headers = {
+    'Authorization': f'Bearer {access_token}',
+    'Content-Type': 'application/json'
+}
+
+response = requests.get(
+    'http://localhost:4281/proyectos',
+    headers=headers
+)
+
+projects = response.json()
+```
+</CodeGroup>
+
+## Service-to-Service Authentication
+
+For microservice communication, services use their client credentials to obtain tokens with appropriate scopes.
+
+### Available Scopes
+
+| Scope | Description |
+|-------|-------------|
+| `sgi-cnf` | Configuration service access |
+| `sgi-com` | Communication service access |
+| `sgi-eti` | Ethics committee service access |
+| `sgi-sgp` | Personnel management access |
+| `sgi-tp` | Third parties service access |
+
+### Service Authentication Example
+
+<Steps>
+  <Step title="Obtain Service Token">
+    ```bash
+    curl -X POST http://localhost:8080/auth/realms/sgi/protocol/openid-connect/token \
+      -H "Content-Type: application/x-www-form-urlencoded" \
+      -d "grant_type=client_credentials" \
+      -d "client_id=csp-service" \
+      -d "client_secret=cf693c2b-bdaf-4f98-87db-e7996b917b0a" \
+      -d "scope=sgi-com sgi-eti"
+    ```
+  </Step>
+
+  <Step title="Use Token in Inter-Service Calls">
+    ```java
+    RestTemplate restTemplate = new RestTemplate();
+    HttpHeaders headers = new HttpHeaders();
+    headers.setBearerAuth(serviceToken);
+    
+    HttpEntity<String> entity = new HttpEntity<>(headers);
+    
+    ResponseEntity<String> response = restTemplate.exchange(
+        "http://sgi-com-service:8080/api/emails",
+        HttpMethod.GET,
+        entity,
+        String.class
+    );
+    ```
+  </Step>
+</Steps>
+
+## Permission Checking Patterns
+
+### Spring Security Annotations
+
+HERCULES SGI uses Spring Security's method security:
+
+```java
+// Single authority required
+@PreAuthorize("hasAuthority('CSP-PRO-C')")
+public ProyectoDto create(ProyectoDto proyecto) { }
+
+// Multiple authorities (OR logic)
+@PreAuthorize("hasAnyAuthority('CSP-PRO-E', 'CSP-PRO-MOD-V')")
+public ProyectoDto update(Long id, ProyectoDto proyecto) { }
+
+// Multiple authorities (AND logic)
+@PreAuthorize("hasAuthority('CSP-PRO-V') and hasAuthority('CSP-PRO-R')")
+public ProyectoDto findById(Long id) { }
+
+// Custom expressions
+@PreAuthorize("hasAnyAuthorityForAnyUO('CSP-PRO-E', 'CSP-PRO-V')")
+public List<ProyectoDto> findAll() { }
+```
+
+### Custom Security Expressions
+
+The `SgiMethodSecurityExpressionRoot` provides custom authorization methods:
+
+- `hasAnyAuthorityForAnyUO()`: Check if user has role for any organizational unit
+- `hasAuthorityForUO()`: Check role for specific organizational unit
+
+## Protected Endpoint Patterns
+
+### Standard CRUD Operations
+
+| HTTP Method | Endpoint Pattern | Required Role Pattern |
+|-------------|------------------|----------------------|
+| GET | `/recursos` | `{MODULE}-{ENTITY}-V` |
+| GET | `/recursos/{id}` | `{MODULE}-{ENTITY}-R` |
+| POST | `/recursos` | `{MODULE}-{ENTITY}-C` |
+| PUT | `/recursos/{id}` | `{MODULE}-{ENTITY}-E` |
+| DELETE | `/recursos/{id}` | `{MODULE}-{ENTITY}-B` |
+
+### Investigator-Specific Endpoints
+
+Endpoints with `/investigador/` prefix require investigator roles:
+
+```
+GET /proyectos/investigador -> CSP-PRO-INV-VR
+POST /solicitudes/investigador -> CSP-SOL-INV-C
+```
+
+## Handling Authorization Errors
+
+### 401 Unauthorized
+
+Returned when no valid token is provided or token is expired:
+
+```json
+{
+  "status": 401,
+  "error": "Unauthorized",
+  "message": "Full authentication is required to access this resource",
+  "path": "/api/proyectos"
+}
+```
+
+**Resolution:** Obtain a new access token through authentication.
+
+### 403 Forbidden
+
+Returned when token is valid but user lacks required permissions:
+
+```json
+{
+  "status": 403,
+  "error": "Forbidden",
+  "message": "Access is denied",
+  "path": "/api/proyectos"
+}
+```
+
+**Resolution:** Ensure the user has been assigned the necessary roles in Keycloak.
+
+## Role Assignment
+
+Roles are assigned to users in the Keycloak Admin Console:
+
+<Steps>
+  <Step title="Access Keycloak Admin">
+    Navigate to `http://localhost:8080/auth/admin`
+  </Step>
+
+  <Step title="Select SGI Realm">
+    Choose the `sgi` realm from the realm dropdown
+  </Step>
+
+  <Step title="Navigate to Users">
+    Go to Users → Select user → Role Mappings
+  </Step>
+
+  <Step title="Assign Roles">
+    Add required roles from Available Roles to Assigned Roles
+  </Step>
+</Steps>
+
+<Warning>
+  **Role Management Best Practices**
+  
+  - Follow the principle of least privilege
+  - Assign roles based on job functions, not individuals
+  - Regularly audit role assignments
+  - Use composite roles for common permission sets
+  - Document role assignment policies
+</Warning>
+
+## Testing Authorization
+
+To test endpoint authorization:
+
+<CodeGroup>
+```bash Test Without Token
+# Should return 401 Unauthorized
+curl -X GET http://localhost:4281/proyectos
+```
+
+```bash Test With Invalid Role
+# Should return 403 Forbidden if user lacks CSP-PRO-V
+curl -X GET http://localhost:4281/proyectos \
+  -H "Authorization: Bearer {token_without_required_role}"
+```
+
+```bash Test With Valid Role
+# Should return 200 OK with project list
+curl -X GET http://localhost:4281/proyectos \
+  -H "Authorization: Bearer {token_with_CSP_PRO_V_role}"
+```
+</CodeGroup>
+
+## Complete Role Reference
+
+The SGI realm contains over 400 role definitions across all modules. Key role patterns include:
+
+- **CSP-\***: Research projects and grants (167 roles)
+- **ETI-\***: Ethics committee operations (47 roles)
+- **PII-\***: Intellectual property (29 roles)
+- **PRC-\***: Production and validation (12 roles)
+- **EER-\***: Business entities (4 roles)
+- **REL-\***: Relationships (3 roles)
+- **ESB-\***: External services (4 roles)
+- **ADM-CNF-E**: System administration
+
+For a complete list of roles, query the Keycloak realm configuration at:
+```
+sgi-auth/realm/sgi-realm.json
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Authentication" icon="key" href="/api/authentication">
+    Learn how to obtain access tokens
+  </Card>
+  <Card title="API Endpoints" icon="brackets-curly" href="/api/csp-service">
+    Explore available API endpoints
+  </Card>
+</CardGroup>

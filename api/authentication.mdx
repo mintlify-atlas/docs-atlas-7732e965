@@ -1,0 +1,243 @@
+---
+title: Authentication
+description: Learn how to authenticate with HERCULES SGI using Keycloak OAuth2/OIDC
+---
+
+HERCULES SGI uses Keycloak as its identity and access management solution, implementing OAuth 2.0 and OpenID Connect (OIDC) protocols for secure authentication.
+
+## Overview
+
+The authentication system supports two primary flows:
+
+- **Authorization Code Flow**: For user-facing applications (frontend)
+- **Client Credentials Flow**: For service-to-service communication
+
+## Keycloak Configuration
+
+The system is configured with the following Keycloak settings:
+
+- **Realm**: `sgi`
+- **Issuer URI**: `http://localhost:8080/auth/realms/sgi` (development)
+- **Token Endpoint**: `http://localhost:8080/auth/realms/sgi/protocol/openid-connect/token`
+- **JWK Set URI**: `http://localhost:8080/auth/realms/sgi/protocol/openid-connect/certs`
+
+### Token Lifespans
+
+- **Access Token**: 300 seconds (5 minutes)
+- **Refresh Token**: Enabled with no maximum reuse
+- **SSO Session Idle Timeout**: 1800 seconds (30 minutes)
+- **SSO Session Max Lifespan**: 36000 seconds (10 hours)
+
+## User Authentication (Authorization Code Flow)
+
+<Steps>
+  <Step title="Redirect to Keycloak Login">
+    Users are redirected to Keycloak's authorization endpoint to authenticate.
+
+    ```
+    GET http://localhost:8080/auth/realms/sgi/protocol/openid-connect/auth
+    ```
+
+    **Query Parameters:**
+    - `client_id`: `front`
+    - `redirect_uri`: Your application callback URL
+    - `response_type`: `code`
+    - `scope`: `openid profile`
+  </Step>
+
+  <Step title="User Login">
+    The user enters their credentials on the Keycloak login page.
+  </Step>
+
+  <Step title="Authorization Code Received">
+    Upon successful authentication, Keycloak redirects back to your application with an authorization code:
+
+    ```
+    http://your-app/callback?code=AUTH_CODE&state=STATE
+    ```
+  </Step>
+
+  <Step title="Exchange Code for Tokens">
+    Exchange the authorization code for access and refresh tokens:
+
+    ```bash
+    curl -X POST http://localhost:8080/auth/realms/sgi/protocol/openid-connect/token \
+      -H "Content-Type: application/x-www-form-urlencoded" \
+      -d "grant_type=authorization_code" \
+      -d "client_id=front" \
+      -d "code=AUTH_CODE" \
+      -d "redirect_uri=http://your-app/callback"
+    ```
+
+    **Response:**
+    ```json
+    {
+      "access_token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...",
+      "expires_in": 300,
+      "refresh_expires_in": 1800,
+      "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+      "token_type": "Bearer",
+      "id_token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...",
+      "not-before-policy": 0,
+      "session_state": "a1b2c3d4-e5f6-7890-a1b2-c3d4e5f67890",
+      "scope": "openid profile email"
+    }
+    ```
+  </Step>
+</Steps>
+
+### Token Claims
+
+The access token includes custom claims specific to HERCULES SGI:
+
+- `user_ref_id`: External user reference identifier
+- `investigador`: Boolean flag indicating if the user is a researcher
+- Standard OIDC claims: `sub`, `name`, `email`, `preferred_username`
+
+## Service Authentication (Client Credentials Flow)
+
+For service-to-service communication, HERCULES SGI uses the OAuth 2.0 Client Credentials grant type.
+
+### Obtaining Service Tokens
+
+Services authenticate using their client ID and secret:
+
+```bash
+curl -X POST http://localhost:8080/auth/realms/sgi/protocol/openid-connect/token \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "grant_type=client_credentials" \
+  -d "client_id=csp-service" \
+  -d "client_secret=cf693c2b-bdaf-4f98-87db-e7996b917b0a" \
+  -d "scope=sgi-cnf sgi-com sgi-eti sgi-sgp sgi-tp"
+```
+
+**Response:**
+```json
+{
+  "access_token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "expires_in": 300,
+  "refresh_expires_in": 0,
+  "token_type": "Bearer",
+  "not-before-policy": 0,
+  "scope": "sgi-cnf sgi-com sgi-eti sgi-sgp sgi-tp"
+}
+```
+
+### Available Service Clients
+
+Each microservice has its own client configuration:
+
+| Service | Client ID | Available Scopes |
+|---------|-----------|------------------|
+| CSP Service | `csp-service` | `sgi-cnf`, `sgi-com`, `sgi-eti`, `sgi-sgp`, `sgi-tp` |
+| COM Service | `com-service` | Service-specific scopes |
+| CNF Service | `cnf-service` | Service-specific scopes |
+| ETI Service | `eti-service` | Service-specific scopes |
+
+<Warning>
+  **Never expose client secrets in client-side code or public repositories.** Service credentials should only be used in secure server-side applications.
+</Warning>
+
+## Token Refresh
+
+When an access token expires, use the refresh token to obtain a new one without requiring the user to re-authenticate:
+
+```bash
+curl -X POST http://localhost:8080/auth/realms/sgi/protocol/openid-connect/token \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "grant_type=refresh_token" \
+  -d "client_id=front" \
+  -d "refresh_token=REFRESH_TOKEN"
+```
+
+**Response:**
+```json
+{
+  "access_token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "expires_in": 300,
+  "refresh_expires_in": 1800,
+  "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "token_type": "Bearer",
+  "id_token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "not-before-policy": 0,
+  "scope": "openid profile email"
+}
+```
+
+<Warning>
+  **Token Refresh Best Practices**
+  - Implement automatic token refresh before expiration
+  - Store refresh tokens securely (HttpOnly cookies for web apps)
+  - Handle refresh token expiration gracefully by redirecting to login
+  - Never transmit tokens over insecure connections
+</Warning>
+
+## Spring Security Configuration
+
+HERCULES SGI services are configured with Spring Security OAuth2 Resource Server:
+
+```yaml
+spring:
+  security:
+    oauth2:
+      client:
+        provider:
+          keycloak:
+            issuer-uri: http://localhost:8080/auth/realms/sgi
+            user-name-attribute: user_ref_id
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://localhost:8080/auth/realms/sgi/protocol/openid-connect/certs
+          user-name-claim: user_ref_id
+```
+
+This configuration:
+- Validates JWT signatures using Keycloak's public keys
+- Extracts user identity from the `user_ref_id` claim
+- Automatically rejects expired or invalid tokens
+
+## Security Best Practices
+
+<Warning>
+  **Security Guidelines**
+  
+  - **Always use HTTPS** in production environments
+  - **Validate tokens server-side** - Never trust client-provided tokens without verification
+  - **Implement proper CORS policies** - Restrict origins that can access your APIs
+  - **Use short-lived access tokens** - The default 5-minute lifespan reduces risk of token theft
+  - **Store tokens securely** - Use HttpOnly cookies or secure storage mechanisms
+  - **Implement token refresh** - Don't force users to re-login frequently
+  - **Monitor for suspicious activity** - Track failed authentication attempts
+  - **Rotate client secrets regularly** - Update service credentials periodically
+</Warning>
+
+## Troubleshooting
+
+### Invalid Token Error
+
+If you receive a 401 Unauthorized error:
+
+1. Verify the token hasn't expired (check `exp` claim)
+2. Ensure the token was issued by the correct realm
+3. Confirm the `jwk-set-uri` is accessible from your service
+4. Check that required roles are present in the token
+
+### Token Refresh Fails
+
+If refresh token requests fail:
+
+1. Verify the refresh token hasn't expired (30 minutes default)
+2. Ensure you're using the correct `client_id`
+3. Check that the SSO session is still valid
+4. Confirm Keycloak server is accessible
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Authorization" icon="shield-check" href="/api/authorization">
+    Learn about role-based access control and permissions
+  </Card>
+  <Card title="API Endpoints" icon="code" href="/api/csp-service">
+    Explore available API endpoints and their requirements
+  </Card>
+</CardGroup>

@@ -1,0 +1,232 @@
+---
+title: CSP - Convocatorias, Solicitudes y Proyectos
+description: Grant calls, applications, and research projects management
+---
+
+## Overview
+
+The **CSP (Convocatorias, Solicitudes y Proyectos)** module is the core of HERCULES SGI's research management system. It handles the complete lifecycle of research funding, from grant call publication through application submission to project execution and monitoring.
+
+<CardGroup cols={3}>
+  <Card title="Convocatorias" icon="bullhorn">
+    Manage grant calls and funding opportunities
+  </Card>
+  <Card title="Solicitudes" icon="file-lines">
+    Handle research applications and proposals
+  </Card>
+  <Card title="Proyectos" icon="diagram-project">
+    Track active research projects and budgets
+  </Card>
+</CardGroup>
+
+## Key Features
+
+### Grant Call Management (Convocatorias)
+
+- **Call Creation and Publication**: Configure grant calls with funding sources, eligibility requirements, and submission deadlines
+- **Multi-language Support**: Define titles and descriptions in multiple languages
+- **Execution Models**: Associate calls with specific execution models (`ModeloEjecucion`)
+- **Eligibility Requirements**: Define team and PI requirements (`RequisitoEquipo`, `RequisitoIP`)
+- **Budget Configuration**: Set funding limits, expense concepts, and financial parameters
+- **Timeline Management**: Configure phases, milestones, and justification periods
+
+### Application Processing (Solicitudes)
+
+<Tabs>
+  <Tab title="Researcher View">
+    Researchers can:
+    - Submit applications to published calls
+    - Track application status through workflow states
+    - Attach required documentation
+    - Manage team composition and budgets
+    - Respond to evaluation comments
+  </Tab>
+  <Tab title="Administrator View">
+    Research office staff can:
+    - Review and validate submitted applications
+    - Assign evaluators and manage review process
+    - Track application states (draft, submitted, under review, approved/rejected)
+    - Generate reports and statistics
+    - Process bulk operations
+  </Tab>
+</Tabs>
+
+### Project Management (Proyectos)
+
+- **Project Setup**: Create projects from approved applications or standalone
+- **Team Management**: Configure project teams with roles (`RolProyecto`) and time periods
+- **Financial Tracking**:
+  - Budget allocation and spending control
+  - Partner budgets (`ProyectoSocio`)
+  - Annual budgets (`ProyectoAnualidad`)
+  - Cost concepts and expense tracking
+  - VAT management (`ProyectoIVA`)
+- **Timeline Management**:
+  - Project phases and milestones (`ProyectoFase`, `ProyectoHito`)
+  - Extensions and modifications (`ProyectoProrroga`)
+  - Follow-up periods (`ProyectoPeriodoSeguimiento`)
+  - Justification periods (`ProyectoPeriodoJustificacion`)
+- **Work Package Management**: Break down projects into work packages for collaborative projects
+- **Document Management**: Store and organize project documentation
+- **Economic Monitoring**: Integration with economic management system (SGE)
+
+## Main Entities
+
+### Convocatoria (Grant Call)
+
+<Info>
+Located at: `sgi-csp-service/src/main/java/org/crue/hercules/sgi/csp/model/Convocatoria.java`
+</Info>
+
+Key attributes:
+- `codigo`: External call code
+- `codigoInterno`: Internal reference code
+- `titulo`: Multi-language title
+- `fechaPublicacion`, `fechaProvisional`, `fechaConcesion`: Key dates
+- `modeloEjecucion`: Execution model reference
+- `finalidad`: Funding purpose/objective
+- `regimenConcurrencia`: Competition regime
+- `estado`: Call state (BORRADOR, REGISTRADA)
+- `duracion`: Expected project duration in months
+- `formularioSolicitud`: Application form type
+
+Related entities:
+- `ConvocatoriaEntidadFinanciadora`: Funding organizations
+- `ConvocatoriaAreaTematica`: Thematic areas
+- `ConvocatoriaConceptoGasto`: Allowed expense concepts
+- `ConvocatoriaFase`: Call phases
+- `ConvocatoriaHito`: Call milestones
+
+### Solicitud (Application)
+
+<Info>
+Located at: `sgi-csp-service/src/main/java/org/crue/hercules/sgi/csp/model/Solicitud.java`
+</Info>
+
+Key attributes:
+- `titulo`: Application title (multi-language)
+- `convocatoriaId`: Associated grant call
+- `estado`: Application state
+- `solicitanteRef`: Applicant reference
+- `unidadGestionRef`: Management unit
+- `origenSolicitud`: Origin type (CONVOCATORIA_SGI, CONVOCATORIA_NO_SGI, SIN_CONVOCATORIA)
+- `formularioSolicitud`: Form type used
+
+Related entities:
+- `SolicitudProyecto`: Project details for the application
+- `SolicitudProyectoEquipo`: Proposed team members
+- `SolicitudProyectoPresupuesto`: Budget breakdown
+- `SolicitudDocumento`: Supporting documentation
+- `SolicitudHito`: Application milestones
+
+### Proyecto (Project)
+
+<Info>
+Located at: `sgi-csp-service/src/main/java/org/crue/hercules/sgi/csp/model/Proyecto.java`
+</Info>
+
+Key attributes:
+- `titulo`: Project title (multi-language)
+- `acronimo`: Project acronym
+- `codigoInterno`, `codigoExterno`: Internal and external codes
+- `fechaInicio`, `fechaFin`, `fechaFinDefinitiva`: Project timeline
+- `modeloEjecucion`: Execution model (required)
+- `estado`: Project state
+- `importePresupuesto`, `importeConcedido`: Budget amounts
+- `confidencial`: Confidentiality flag
+- `colaborativo`, `coordinado`: Collaboration flags
+- `ivaDeducible`: VAT deductibility
+
+Related entities:
+- `ProyectoEquipo`: Team members with roles and periods
+- `ProyectoSocio`: Partner organizations
+- `ProyectoEntidadFinanciadora`: Funding entities
+- `ProyectoAnualidad`: Annual budget breakdown
+- `ProyectoPaqueteTrabajo`: Work packages
+- `ProyectoResponsableEconomico`: Financial managers
+
+## User Workflows
+
+### Creating a Grant Call
+
+1. Navigate to Convocatorias section
+2. Create new call with basic information (code, title, dates)
+3. Configure execution model and funding parameters
+4. Define eligibility requirements for PI and team
+5. Set up thematic areas and expense concepts
+6. Configure phases, milestones, and deadlines
+7. Add funding entities and financial details
+8. Publish call (change state to REGISTRADA)
+
+### Submitting an Application
+
+1. Search and select target grant call
+2. Create new application (auto-assigned code)
+3. Complete project information form
+4. Add team members with roles
+5. Define budget breakdown by expense concepts
+6. Attach required documents
+7. Submit for review
+8. Track evaluation status and respond to comments
+
+### Managing an Active Project
+
+1. Create project from approved application or standalone
+2. Configure project team with effective periods
+3. Set up budget allocation and annual breakdown
+4. Define work packages (if applicable)
+5. Configure partner organizations and their budgets
+6. Track milestones and phases
+7. Manage follow-up and justification periods
+8. Monitor economic execution and spending
+9. Process project extensions or modifications
+10. Complete final justification and closeout
+
+## Integration Points
+
+<Note>
+The CSP module integrates with several other HERCULES modules:
+
+- **SGE (Economic Management)**: Project budget execution and spending tracking via `ProyectoProyectoSge`
+- **REP (Reports)**: Generate grant call reports, application statistics, and project dashboards
+- **COM (Communications)**: Automated notifications for deadlines, state changes, and alerts
+- **PRC (Scientific Production)**: Link research outputs to funded projects
+- **PII (Intellectual Property)**: Connect inventions to research projects
+</Note>
+
+## API Endpoints
+
+The CSP service exposes RESTful endpoints for all operations:
+
+- `/convocatorias`: Grant call management
+- `/solicitudes`: Application processing
+- `/proyectos`: Project management
+- `/modelos-ejecucion`: Execution model configuration
+- `/tipos-*`: Master data for types (phases, milestones, documents, etc.)
+
+## Database Schema
+
+Database migrations are located in:
+```
+sgi-csp-service/src/main/resources/db/changelog/
+```
+
+Core tables:
+- `convocatoria` - Grant calls
+- `solicitud` - Applications
+- `proyecto` - Research projects
+- `modelo_ejecucion` - Execution models
+- Supporting tables for relationships, types, and configurations
+
+## Frontend Components
+
+The web interface is located in:
+```
+sgi-webapp/src/app/module/csp/
+```
+
+Key UI modules:
+- Convocatoria management screens
+- Application submission and review interfaces
+- Project dashboard and monitoring tools
+- Budget tracking and reporting views

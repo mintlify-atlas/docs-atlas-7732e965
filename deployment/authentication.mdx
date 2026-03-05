@@ -1,0 +1,617 @@
+---
+title: Authentication
+description: Configure Keycloak authentication server and manage users and roles
+---
+
+The HERCULES SGI system uses Keycloak 13.0.0 as its authentication and authorization server. This guide covers Keycloak setup, realm configuration, and user management.
+
+## Keycloak Overview
+
+Keycloak provides:
+- **Single Sign-On (SSO)** across all SGI services
+- **OAuth2/OpenID Connect** authentication
+- **Role-Based Access Control (RBAC)**
+- **User Federation** (LDAP, Active Directory)
+- **Identity Brokering** (SAML, Social Login)
+
+<Warning>
+  SGI uses Keycloak 13.0.0 specifically. Using other versions may cause compatibility issues.
+</Warning>
+
+## Keycloak Installation
+
+### Docker Deployment (Recommended)
+
+The SGI authentication server extends the official Keycloak image:
+
+```bash
+# Build the custom Keycloak image
+cd sgi-auth
+mvn clean package -DskipTests
+docker build -t sgi-auth:1.1.0 .
+
+# Run Keycloak
+docker run -d \
+  --name sgi-auth \
+  -p 8080:8080 \
+  -e KEYCLOAK_USER=admin \
+  -e KEYCLOAK_PASSWORD=admin \
+  -e DB_VENDOR=postgres \
+  -e DB_ADDR=postgres \
+  -e DB_DATABASE=keycloak \
+  -e DB_USER=keycloak \
+  -e DB_PASSWORD=keycloak \
+  sgi-auth:1.1.0
+```
+
+### Standalone Installation
+
+For non-containerized deployment:
+
+<Steps>
+
+<Step title="Download Keycloak">
+  Download Keycloak 13.0.0:
+  
+  ```bash
+  wget https://github.com/keycloak/keycloak/releases/download/13.0.0/keycloak-13.0.0.tar.gz
+  tar -xzf keycloak-13.0.0.tar.gz
+  cd keycloak-13.0.0
+  ```
+</Step>
+
+<Step title="Configure Database">
+  Configure Keycloak to use PostgreSQL (recommended for production):
+  
+  ```bash
+  # Edit standalone/configuration/standalone.xml
+  # Add PostgreSQL datasource configuration
+  ```
+  
+  Or use the H2 embedded database for development.
+</Step>
+
+<Step title="Install Custom Extensions">
+  Install SGI's custom SAML broker mappers:
+  
+  ```bash
+  cp sgi-auth/broker-saml-mappers/target/broker-saml-mappers-*.jar \
+     keycloak-13.0.0/standalone/deployments/
+  ```
+</Step>
+
+<Step title="Start Keycloak">
+  ```bash
+  cd keycloak-13.0.0/bin
+  ./standalone.sh -Djboss.bind.address=0.0.0.0
+  ```
+  
+  Access the admin console at: `http://localhost:8080/auth`
+</Step>
+
+</Steps>
+
+## SGI Realm Configuration
+
+### Importing the SGI Realm
+
+SGI provides a pre-configured realm with all necessary clients, roles, and settings.
+
+<Steps>
+
+<Step title="Locate the Realm File">
+  The realm configuration is in `sgi-auth/realm/sgi-realm.json`.
+  
+  <Warning>
+    **Security Alert:** The default realm file contains example credentials and secrets. **Do not use in production without customization!**
+  </Warning>
+</Step>
+
+<Step title="Import the Realm">
+  **Option 1: Admin Console (Recommended)**
+  
+  1. Login to Keycloak admin console: `http://localhost:8080/auth`
+  2. Hover over the realm dropdown (top-left)
+  3. Click "Add realm"
+  4. Select "Import" and choose `sgi-realm.json`
+  5. Click "Create"
+  
+  **Option 2: Command Line**
+  
+  ```bash
+  # Using Docker
+  docker exec -it sgi-auth \
+    /opt/jboss/keycloak/bin/standalone.sh \
+    -Djboss.socket.binding.port-offset=100 \
+    -Dkeycloak.migration.action=import \
+    -Dkeycloak.migration.provider=singleFile \
+    -Dkeycloak.migration.file=/realm/sgi-realm.json \
+    -Dkeycloak.migration.strategy=OVERWRITE_EXISTING
+  ```
+</Step>
+
+<Step title="Verify Realm Import">
+  Check that the realm was imported successfully:
+  
+  1. Select the `sgi` realm from the dropdown
+  2. Navigate to "Realm Settings"
+  3. Verify the realm name is `sgi`
+  4. Check "Clients" - you should see multiple clients (front, csp-service, eti-service, etc.)
+</Step>
+
+</Steps>
+
+### Realm Settings
+
+The SGI realm includes these important settings:
+
+<ParamField path="Realm" type="string" default="sgi">
+  Realm identifier used in OAuth2 configuration.
+</ParamField>
+
+<ParamField path="Access Token Lifespan" type="integer" default="300">
+  Access token validity in seconds (5 minutes).
+</ParamField>
+
+<ParamField path="SSO Session Idle" type="integer" default="1800">
+  SSO session idle timeout in seconds (30 minutes).
+</ParamField>
+
+<ParamField path="SSO Session Max" type="integer" default="36000">
+  Maximum SSO session lifespan in seconds (10 hours).
+</ParamField>
+
+<ParamField path="Offline Session Idle" type="integer" default="2592000">
+  Offline session idle timeout in seconds (30 days).
+</ParamField>
+
+## Client Configuration
+
+The SGI realm includes multiple OAuth2 clients:
+
+### Frontend Client (`front`)
+
+<Accordion title="Frontend Client Configuration">
+
+**Client ID:** `front`  
+**Client Protocol:** openid-connect  
+**Access Type:** public  
+**Valid Redirect URIs:**
+- `http://localhost:4200/*` (development)
+- `https://sgi.example.com/*` (production)
+
+**Web Origins:**
+- `http://localhost:4200` (development)
+- `https://sgi.example.com` (production)
+
+Configuration steps:
+
+1. Navigate to **Clients** → `front`
+2. Update **Valid Redirect URIs** for your domain
+3. Update **Web Origins** to match your frontend URL
+4. Save changes
+
+```json
+{
+  "clientId": "front",
+  "enabled": true,
+  "protocol": "openid-connect",
+  "publicClient": true,
+  "redirectUris": [
+    "https://sgi.example.com/*"
+  ],
+  "webOrigins": [
+    "https://sgi.example.com"
+  ]
+}
+```
+
+</Accordion>
+
+### Backend Service Clients
+
+Each backend service has its own client for service-to-service authentication:
+
+<Accordion title="CSP Service Client">
+
+**Client ID:** `csp-service`  
+**Access Type:** confidential  
+**Service Accounts Enabled:** true  
+**Authorization Enabled:** true
+
+<Warning>
+  **Change the client secret before production deployment!**
+  
+  The default secret in the realm file is: `cf693c2b-bdaf-4f98-87db-e7996b917b0a`
+</Warning>
+
+To generate a new client secret:
+
+1. Navigate to **Clients** → `csp-service`
+2. Go to **Credentials** tab
+3. Click **Regenerate Secret**
+4. Copy the new secret
+5. Update the secret in your service's `application.yml`:
+
+```yaml
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          csp-service:
+            client-secret: YOUR_NEW_SECRET_HERE
+```
+
+</Accordion>
+
+<Accordion title="Other Service Clients">
+
+Similar configuration for other services:
+
+- **eti-service** - Ethics Committee service
+- **pii-service** - Intellectual Property service
+- **cnf-service** - Configuration service
+- **com-service** - Communications service
+- **tp-service** - Third Parties service
+- **usr-service** - User management service
+- **rel-service** - Relations service
+- **rep-service** - Reports service
+- **prc-service** - Processing service
+- **eer-service** - External Evaluation Reports service
+
+Each client requires:
+1. Unique client secret (regenerate for production)
+2. Service account roles configured
+3. Scope mappings to access other services
+
+</Accordion>
+
+## Role Configuration
+
+SGI uses role-based access control with module-specific roles.
+
+### Role Naming Convention
+
+Roles follow the pattern: `[MODULE]-[PERMISSION]`
+
+Examples from the CSP (Calls, Solicitudes, Proyectos) module:
+- `CSP-ROLE-R` - Read permission
+- `CSP-ROLE-E` - Edit permission
+- `CSP-ROLE-C` - Create permission
+- `CSP-ROLE-B` - Delete (Borrar) permission
+
+### Module Roles
+
+The SGI realm includes roles for these modules:
+
+<Accordion title="CSP Module Roles (Calls, Applications, Projects)">
+
+- `CSP-ROLE-R` - View calls, applications, and projects
+- `CSP-ROLE-E` - Edit existing records
+- `CSP-ROLE-C` - Create new records
+- `CSP-ROLE-B` - Delete records
+- `CSP-ROLS-R` - View funding requests
+- `CSP-ROLS-E` - Edit funding requests
+- `CSP-ROLS-C` - Create funding requests
+- `CSP-ROLS-B` - Delete funding requests
+
+</Accordion>
+
+<Accordion title="ETI Module Roles (Ethics Committee)">
+
+- `ETI-ACT-V` - View committee acts
+- `ETI-ACT-E` - Edit committee acts
+- `ETI-EVR-V` - View evaluations
+- `ETI-EVR-EVALR` - Evaluate as evaluator
+- `ETI-MEM-V` - View memories
+- `ETI-MEM-E` - Edit memories
+
+</Accordion>
+
+<Accordion title="PII Module Roles (Intellectual Property)">
+
+- `PII-INV-V` - View inventions
+- `PII-INV-E` - Edit inventions
+- `PII-INV-C` - Create inventions
+- `PII-INV-B` - Delete inventions
+
+</Accordion>
+
+<Accordion title="Administrative Roles">
+
+- `ADMINISTRADOR-CSP` - CSP module administrator
+- `ADMINISTRADOR-ETI` - ETI module administrator
+- `ADMINISTRADOR-PII` - PII module administrator
+- `SYSADM-CSP` - CSP system administrator
+- `UNIDAD-GESTION` - Management unit access
+
+</Accordion>
+
+### Assigning Roles to Users
+
+<Steps>
+
+<Step title="Navigate to User">
+  In Keycloak admin console:
+  
+  1. Select the `sgi` realm
+  2. Click **Users** in the left menu
+  3. Find and select the user
+</Step>
+
+<Step title="Assign Realm Roles">
+  1. Go to **Role Mappings** tab
+  2. Under **Available Roles**, select roles to assign
+  3. Click **Add selected**
+  4. Assigned roles appear in **Assigned Roles** section
+</Step>
+
+<Step title="Verify Role Assignment">
+  Test the user can access appropriate SGI modules:
+  
+  ```bash
+  # Get access token
+  curl -X POST "http://localhost:8080/auth/realms/sgi/protocol/openid-connect/token" \
+    -d "client_id=front" \
+    -d "username=testuser" \
+    -d "password=password" \
+    -d "grant_type=password"
+  
+  # Decode the JWT to verify roles
+  ```
+</Step>
+
+</Steps>
+
+## User Management
+
+### Creating Users
+
+<Steps>
+
+<Step title="Add New User">
+  1. Navigate to **Users** → **Add user**
+  2. Fill in user details:
+     - Username (required)
+     - Email
+     - First Name
+     - Last Name
+  3. Set **Email Verified** to ON
+  4. Click **Save**
+</Step>
+
+<Step title="Set Password">
+  1. Go to **Credentials** tab
+  2. Set password
+  3. Set **Temporary** to OFF for permanent password
+  4. Click **Set Password**
+</Step>
+
+<Step title="Configure User Attributes">
+  SGI requires the `user_ref_id` attribute:
+  
+  1. Go to **Attributes** tab
+  2. Add attribute:
+     - Key: `user_ref_id`
+     - Value: External user reference ID (e.g., employee ID)
+  3. Click **Save**
+  
+  <Info>
+    The `user_ref_id` is used to link Keycloak users with external systems (HR, LDAP, etc.).
+  </Info>
+</Step>
+
+<Step title="Assign Roles">
+  Follow the role assignment steps in the previous section.
+</Step>
+
+</Steps>
+
+### User Federation
+
+Connect Keycloak to LDAP or Active Directory:
+
+<Accordion title="LDAP Configuration">
+
+1. Navigate to **User Federation** → **Add provider** → **ldap**
+2. Configure LDAP settings:
+
+<ParamField path="Edit Mode" type="string" default="READ_ONLY">
+  How users are edited. Use READ_ONLY for authoritative LDAP.
+</ParamField>
+
+<ParamField path="Vendor" type="string">
+  LDAP server type (Active Directory, Red Hat Directory Server, etc.).
+</ParamField>
+
+<ParamField path="Connection URL" type="string" required>
+  LDAP connection string (e.g., `ldap://ldap.example.com:389`).
+</ParamField>
+
+<ParamField path="Users DN" type="string" required>
+  Base DN for users (e.g., `ou=users,dc=example,dc=com`).
+</ParamField>
+
+<ParamField path="Bind DN" type="string" required>
+  Service account DN for binding to LDAP.
+</ParamField>
+
+<ParamField path="Bind Credential" type="string" required>
+  Password for the bind DN.
+</ParamField>
+
+3. Configure attribute mappings to match SGI requirements
+4. Test connection and authentication
+5. Synchronize users
+
+</Accordion>
+
+## Security Considerations
+
+<Warning>
+  **Critical Security Tasks Before Production:**
+  
+  1. **Change all client secrets** - Regenerate secrets for all service clients
+  2. **Update admin credentials** - Change default admin username/password
+  3. **Enable HTTPS** - Configure TLS certificates for Keycloak
+  4. **Configure CORS** - Restrict valid redirect URIs and web origins
+  5. **Enable brute force protection** - In Realm Settings → Security Defenses
+  6. **Review token lifespans** - Adjust based on security requirements
+  7. **Audit roles and permissions** - Remove unnecessary roles from realm
+  8. **Backup realm configuration** - Export realm regularly
+</Warning>
+
+### Rotating Client Secrets
+
+Refer to the official guide in the source repository: `sgi-auth/docs/keycloak-secrets-rotation.md`
+
+<Steps>
+
+<Step title="Generate New Secret">
+  For each service client:
+  
+  1. Navigate to **Clients** → [client-name] → **Credentials**
+  2. Click **Regenerate Secret**
+  3. Copy the new secret
+</Step>
+
+<Step title="Update Service Configuration">
+  Update each service's `application.yml` or environment variables:
+  
+  ```bash
+  # Using environment variable
+  export SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_CSP_SERVICE_CLIENT_SECRET="new_secret"
+  
+  # Or in application.yml
+  spring:
+    security:
+      oauth2:
+        client:
+          registration:
+            csp-service:
+              client-secret: new_secret
+  ```
+</Step>
+
+<Step title="Restart Services">
+  Restart each service to apply the new secret:
+  
+  ```bash
+  # Docker
+  docker restart sgi-csp-service
+  
+  # Systemd
+  systemctl restart sgi-csp-service
+  ```
+</Step>
+
+<Step title="Verify Connectivity">
+  Test that services can still authenticate:
+  
+  ```bash
+  # Check service health endpoints
+  curl http://localhost:4281/actuator/health
+  ```
+</Step>
+
+</Steps>
+
+### CVE-2020-27838 Mitigation
+
+<Info>
+  SGI 1.0.0 updates Keycloak to version 13.0.0 to address [CVE-2020-27838](https://nvd.nist.gov/vuln/detail/CVE-2020-27838), a security vulnerability in earlier Keycloak versions.
+  
+  Ensure you're using Keycloak 13.0.0 or later.
+</Info>
+
+### Sensitive Information in Realm Export
+
+<Warning>
+  The default `sgi-realm.json` contains sensitive information including:
+  - Example user credentials
+  - Client secrets
+  - Sample role assignments
+  
+  **Action Required:** Before production deployment:
+  1. Import the realm
+  2. Change all credentials and secrets
+  3. Remove example users
+  4. Export a clean realm configuration for your environment
+</Warning>
+
+## Token Configuration
+
+Configure JWT tokens for optimal security and performance:
+
+### Access Token Settings
+
+1. Navigate to **Realm Settings** → **Tokens**
+2. Configure token lifespans:
+
+<ParamField path="Access Token Lifespan" type="duration" default="5 minutes">
+  How long access tokens are valid. Shorter is more secure but requires more token refreshes.
+</ParamField>
+
+<ParamField path="Client Login Timeout" type="duration" default="1 minute">
+  Timeout for OAuth2 authorization code flow.
+</ParamField>
+
+<ParamField path="Refresh Token Max Reuse" type="integer" default="0">
+  How many times a refresh token can be reused (0 = single use).
+</ParamField>
+
+### Token Claims
+
+SGI uses these custom claims:
+
+- `user_ref_id` - External user reference ID
+- `authorities` - User roles and permissions
+- `sub` - Subject (Keycloak user ID)
+
+Claims are automatically included in JWT tokens.
+
+## Troubleshooting
+
+### Realm Import Fails
+
+**Problem:** Realm import fails with validation errors.
+
+**Solution:**
+```bash
+# Check realm file validity
+jq . sgi-auth/realm/sgi-realm.json
+
+# Import with partial import strategy
+-Dkeycloak.migration.strategy=IGNORE_EXISTING
+```
+
+### Invalid Redirect URI
+
+**Problem:** Login fails with "Invalid redirect URI" error.
+
+**Solution:** Update the `front` client's Valid Redirect URIs to match your frontend URL.
+
+### Client Secret Mismatch
+
+**Problem:** Services can't authenticate with "invalid_client" error.
+
+**Solution:** Verify client secret matches between Keycloak and service configuration.
+
+### User Attribute Missing
+
+**Problem:** JWT token missing `user_ref_id` claim.
+
+**Solution:** 
+1. Add `user_ref_id` attribute to user
+2. Configure client mapper:
+   - **Clients** → `front` → **Mappers** → **Create**
+   - Mapper Type: User Attribute
+   - User Attribute: `user_ref_id`
+   - Token Claim Name: `user_ref_id`
+
+## Next Steps
+
+- [Administrator Guide](/guides/administrator) - Managing users and permissions
+- [API Authentication](/api/authentication) - Using JWT tokens in API requests
+- [Authorization](/api/authorization) - Role-based access control and permissions

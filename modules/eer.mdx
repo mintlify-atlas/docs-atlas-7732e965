@@ -1,0 +1,344 @@
+---
+title: EER - Relaciones con Entidades Externas
+description: Management of external research entities and spin-off companies
+---
+
+## Overview
+
+The **EER (External Entity Relations)** module manages relationships with external research entities, specifically focusing on university spin-off companies (EBTs - Empresas de Base Tecnológica) and research-intensive non-technological companies (EINCNTs).
+
+<CardGroup cols={3}>
+  <Card title="Empresas" icon="building">
+    Manage spin-off companies and startups
+  </Card>
+  <Card title="Seguimiento" icon="chart-line">
+    Track company development and status
+  </Card>
+  <Card title="Documentación" icon="folder">
+    Organize company legal documentation
+  </Card>
+</CardGroup>
+
+## Key Features
+
+### Spin-off Company Management
+
+- **Company Registration**: Register new technology-based companies (EBTs) and research companies (EINCNTs)
+- **Application Processing**: Track company creation applications through approval workflow
+- **Legal Documentation**: Manage incorporation documents, bylaws, and notarial records
+- **Multi-language Support**: Company names and descriptions in multiple languages
+- **Status Tracking**: Monitor company lifecycle from application to dissolution
+
+### Company Lifecycle Management
+
+<Tabs>
+  <Tab title="Application Phase">
+    - Submit company creation request
+    - Define company type (EBT/EINCNT)
+    - Provide business plan and objectives
+    - Identify entrepreneur team
+    - Define technology/knowledge base
+    - Submit to review committee
+    - Track application status (EN_TRAMITACION)
+  </Tab>
+  <Tab title="Approval Phase">
+    - Committee reviews application
+    - Decision: approve or reject
+    - If approved, proceed to incorporation
+    - If rejected, record reasons (NO_APROBADA)
+    - Notify entrepreneur team of decision
+  </Tab>
+  <Tab title="Active Phase">
+    - Company incorporates (ACTIVA status)
+    - Record incorporation date and notary details
+    - Track company composition and administration
+    - Monitor ongoing relationship with university
+    - Record any status changes or issues
+  </Tab>
+  <Tab title="Closure Phase">
+    - Company becomes inactive (SIN_ACTIVIDAD)
+    - Process dissolution if needed (DISUELTA)
+    - Record final dates and circumstances
+    - Archive documentation
+    - Close relationship record
+  </Tab>
+</Tabs>
+
+### Governance and Structure
+
+- **Entrepreneurial Team** (`EmpresaEquipoEmprendedor`): Track founding team members
+- **Share Composition** (`EmpresaComposicionSociedad`): Record ownership structure
+- **Board of Directors** (`EmpresaAdministracionSociedad`): Track company administrators
+- **University Involvement**: Monitor university participation and representation
+
+## Main Entities
+
+### Empresa (Company)
+
+<Info>
+Located at: `sgi-eer-service/src/main/java/org/crue/hercules/sgi/eer/model/Empresa.java`
+</Info>
+
+Key attributes:
+- `fechaSolicitud`: Application submission date
+- `tipoEmpresa`: Company type (EBT or EINCNT)
+- `solicitanteRef`: Applicant reference
+- `nombreRazonSocial`: Company legal name (multi-language)
+- `entidadRef`: Associated university entity reference
+- `objetoSocial`: Corporate purpose/objectives (multi-language)
+- `conocimientoTecnologia`: Technology/knowledge base (multi-language)
+- `numeroProtocolo`: Notarial protocol number
+- `notario`: Notary information (multi-language)
+- `fechaConstitucion`: Incorporation date
+- `fechaAprobacionCG`: Governing council approval date
+- `fechaIncorporacion`: University incorporation date
+- `fechaDesvinculacion`: Disassociation date
+- `fechaCese`: Cessation date
+- `observaciones`: Additional notes (multi-language)
+- `estado`: Current status
+- `activo`: Active flag
+
+### Company States (EstadoEmpresa)
+
+The company lifecycle includes these states:
+
+1. **EN_TRAMITACION** (In Process)
+   - Initial application submitted
+   - Under review by committee
+   - Documentation being gathered
+
+2. **NO_APROBADA** (Not Approved)
+   - Application rejected
+   - Does not meet requirements
+   - Alternative support may be offered
+
+3. **ACTIVA** (Active)
+   - Company approved and incorporated
+   - Operating with university relationship
+   - Active monitoring and support
+
+4. **SIN_ACTIVIDAD** (Without Activity)
+   - Company temporarily inactive
+   - Relationship maintained
+   - May reactivate
+
+5. **DISUELTA** (Dissolved)
+   - Company legally dissolved
+   - Relationship terminated
+   - Final status
+
+### Company Types (TipoEmpresa)
+
+**EBT (Empresa de Base Tecnológica)** - Technology-Based Company:
+- Commercializes university research results
+- Based on technological innovation
+- Often involves patented technology
+- University may hold equity stake
+
+**EINCNT (Empresa Intensiva en Conocimiento No Tecnológico)** - Research-Intensive Non-Technological Company:
+- Based on university research and knowledge
+- Not primarily technological
+- May involve social sciences, humanities, or professional services
+- University knowledge transfer without patents
+
+### Related Entities
+
+#### EmpresaEquipoEmprendedor (Entrepreneurial Team)
+
+Tracks founding team members:
+- `empresa`: Associated company
+- `personaRef`: Team member reference
+- `miembroEquipo`: Team member flag
+- Roles and responsibilities
+
+#### EmpresaComposicionSociedad (Share Composition)
+
+Ownership structure:
+- `empresa`: Associated company
+- `miembroSociedadRef`: Shareholder reference
+- `fechaInicio`, `fechaFin`: Ownership period
+- `participacion`: Ownership percentage
+- Type of participation (capital, services, etc.)
+
+#### EmpresaAdministracionSociedad (Company Administration)
+
+Board and management:
+- `empresa`: Associated company
+- `personaRef`: Administrator reference
+- `fechaInicio`, `fechaFin`: Term of office
+- `tipoAdministracion`: Administration type (sole, joint, board)
+
+#### EmpresaDocumento (Company Documents)
+
+Document management:
+- `empresa`: Associated company
+- `nombre`: Document name (multi-language)
+- `tipoDocumento`: Document type
+- `comentarios`: Comments (multi-language)
+- `documentoRef`: Reference to stored file
+- Version tracking
+
+## User Workflows
+
+### Submitting a Spin-off Application
+
+1. Navigate to EER module
+2. Create new company application (`Empresa`)
+3. Select company type (EBT or EINCNT)
+4. Enter company details:
+   - Proposed legal name
+   - Corporate objectives
+   - Technology/knowledge base
+5. Add entrepreneurial team members
+6. Attach business plan and supporting documents
+7. Submit application for review
+8. Application status set to EN_TRAMITACION
+
+### Processing an Application
+
+1. Review committee receives application
+2. Evaluate business plan and feasibility
+3. Assess technology transfer aspects
+4. Verify university policies compliance
+5. Make decision: approve or reject
+6. If approved:
+   - Update status to EN_TRAMITACION (awaiting incorporation)
+   - Provide guidance on incorporation process
+7. If rejected:
+   - Update status to NO_APROBADA
+   - Document reasons and communicate to applicant
+
+### Incorporating an Approved Company
+
+1. Company incorporates legally
+2. Record incorporation details:
+   - Incorporation date (`fechaConstitucion`)
+   - Notarial protocol number and notary
+   - Final legal name
+3. Record governing council approval (`fechaAprobacionCG`)
+4. Add share composition:
+   - University participation if any
+   - Founder shares
+   - Other investors
+5. Add board of directors information
+6. Update status to ACTIVA
+7. Record university incorporation date (`fechaIncorporacion`)
+
+### Monitoring Active Companies
+
+1. Track company performance and status
+2. Update composition changes:
+   - New shareholders
+   - Share transfers
+   - Changes in university participation
+3. Update administration changes:
+   - New directors
+   - Officer changes
+4. Maintain document repository:
+   - Annual reports
+   - Financial statements
+   - Shareholder agreements
+   - License agreements
+5. Record status changes if company becomes inactive
+
+### Closing Company Relationship
+
+1. Company decides to dissolve or disassociate
+2. Record relevant dates:
+   - Disassociation date (`fechaDesvinculacion`)
+   - Cessation date (`fechaCese`)
+3. Update status to SIN_ACTIVIDAD or DISUELTA
+4. Archive final documentation
+5. Close composition and administration records
+6. Set `activo` flag to false if fully closed
+
+## Document Types
+
+`TipoDocumento` master data includes:
+- Business plan
+- Articles of incorporation
+- Bylaws (statutes)
+- Shareholder agreements
+- License agreements
+- Annual reports
+- Financial statements
+- Governing council resolutions
+- Notarial deeds
+- Other legal documents
+
+## Integration Points
+
+<Note>
+The EER module integrates with:
+
+- **CSP Module**: Link companies to research projects that generated the technology
+- **PII Module**: Connect spin-offs to licensed inventions and patents
+- **REP Module**: Generate reports on spin-off portfolio and outcomes
+- **COM Module**: Notifications for application status changes and deadlines
+- **External Systems**: Company registry integration for verification
+</Note>
+
+## Reporting and Analytics
+
+Track key metrics:
+- Number of active spin-offs
+- EBT vs. EINCNT distribution
+- Success rate of applications
+- University equity holdings
+- Employment generated
+- Revenue and growth tracking
+- Survival rates by cohort
+- Technology transfer impact
+
+## Multi-language Support
+
+Multiple entities support multi-language content:
+- `EmpresaNombreRazonSocial`: Company name in different languages
+- `EmpresaObjetoSocial`: Corporate objectives in multiple languages
+- `EmpresaConocimientoTecnologia`: Technology description in multiple languages
+- `EmpresaNotario`: Notary information in multiple languages
+- `EmpresaObservaciones`: Observations in multiple languages
+- `EmpresaDocumentoNombre`: Document names in multiple languages
+- `EmpresaDocumentoComentarios`: Document comments in multiple languages
+
+## API Endpoints
+
+REST API structure:
+- `/empresas`: Company management
+- `/empresas/{id}/equipo-emprendedor`: Entrepreneurial team
+- `/empresas/{id}/composicion-sociedad`: Ownership structure
+- `/empresas/{id}/administracion-sociedad`: Board of directors
+- `/empresas/{id}/documentos`: Document management
+- `/tipos-documento`: Document type configuration
+
+## Database Schema
+
+Database migrations:
+```
+sgi-eer-service/src/main/resources/db/changelog/
+```
+
+Core tables:
+- `empresa` - Company records
+- `empresa_equipo_emprendedor` - Entrepreneurial teams
+- `empresa_composicion_sociedad` - Share composition
+- `empresa_administracion_sociedad` - Administration
+- `empresa_documento` - Documents
+- Multi-language content tables for names, descriptions, etc.
+- `tipo_documento` - Document type master data
+
+## Frontend Components
+
+Web interface:
+```
+sgi-webapp/src/app/module/eer/
+```
+
+Key features:
+- Company application forms
+- Application review interface
+- Company profile and dashboard
+- Ownership and governance tracking
+- Document repository
+- Status change workflows
+- Portfolio reporting and analytics

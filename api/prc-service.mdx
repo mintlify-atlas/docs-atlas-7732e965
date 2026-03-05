@@ -1,0 +1,445 @@
+---
+title: 'PRC Service API'
+description: 'Scientific Production Management - Producción Científica'
+icon: 'flask'
+---
+
+## Overview
+
+The PRC (Producción Científica) service manages research output tracking and evaluation:
+
+- **Publicaciones** - Scientific publications
+- **Congresos** - Congress presentations
+- **Comités Editoriales** - Editorial board memberships
+- **Obras Artísticas** - Artistic works
+- **Direcciones de Tesis** - Thesis supervision
+- **Actividades** - Research activities
+
+Base URL: `/producciones-cientificas`
+
+## Authentication
+
+All endpoints require JWT authentication with PRC-specific permissions:
+- `PRC-VAL-*` - Validation permissions for managers
+- `PRC-VAL-INV-ER` - Researcher validation permissions
+
+---
+
+## Publicaciones (Publications)
+
+### List Publications
+
+<CodeGroup>
+```bash GET /producciones-cientificas/publicaciones
+curl -X GET "https://api.example.com/producciones-cientificas/publicaciones?q=estado==VALIDADO" \
+  -H "Authorization: Bearer {token}"
+```
+</CodeGroup>
+
+Returns all publications (for managers).
+
+**Required Permission:** `PRC-VAL-V`, `PRC-VAL-E`
+
+<ParamField query="q" type="string">
+  RSQL filter query
+</ParamField>
+
+<ResponseField name="content" type="array">
+  Array of Publication objects
+  <Expandable title="Publication object">
+    <ResponseField name="id" type="long">Production ID</ResponseField>
+    <ResponseField name="titulo" type="string">Publication title</ResponseField>
+    <ResponseField name="tituloPublicacion" type="string">Journal/book title</ResponseField>
+    <ResponseField name="fechaPublicacion" type="date">Publication date</ResponseField>
+    <ResponseField name="tipoProduccion" type="string">Production type</ResponseField>
+    <ResponseField name="estado" type="object">Validation state</ResponseField>
+    <ResponseField name="epigrafe" type="string">Category</ResponseField>
+  </Expandable>
+</ResponseField>
+
+### List Researcher Publications
+
+<CodeGroup>
+```bash GET /producciones-cientificas/publicaciones/investigador
+curl -X GET "https://api.example.com/producciones-cientificas/publicaciones/investigador" \
+  -H "Authorization: Bearer {token}"
+```
+</CodeGroup>
+
+Returns publications accessible to the authenticated researcher.
+
+**Required Permission:** `PRC-VAL-INV-ER`
+
+---
+
+## Comités Editoriales (Editorial Boards)
+
+### List Editorial Boards
+
+<CodeGroup>
+```bash GET /producciones-cientificas/comites-editoriales
+curl -X GET "https://api.example.com/producciones-cientificas/comites-editoriales" \
+  -H "Authorization: Bearer {token}"
+```
+</CodeGroup>
+
+**Required Permission:** `PRC-VAL-V`, `PRC-VAL-E`
+
+<ResponseField name="content" type="array">
+  <Expandable title="ComiteEditorial object">
+    <ResponseField name="id" type="long">Production ID</ResponseField>
+    <ResponseField name="nombre" type="string">Journal/publication name</ResponseField>
+    <ResponseField name="fechaInicio" type="date">Start date</ResponseField>
+    <ResponseField name="fechaFin" type="date">End date</ResponseField>
+    <ResponseField name="tipoProduccion" type="string">Production type</ResponseField>
+    <ResponseField name="estado" type="object">Validation state</ResponseField>
+  </Expandable>
+</ResponseField>
+
+### List Researcher Editorial Boards
+
+<CodeGroup>
+```bash GET /producciones-cientificas/comites-editoriales/investigador
+curl -X GET "https://api.example.com/producciones-cientificas/comites-editoriales/investigador" \
+  -H "Authorization: Bearer {token}"
+```
+</CodeGroup>
+
+**Required Permission:** `PRC-VAL-INV-ER`
+
+---
+
+## Congresos (Congress Presentations)
+
+### List Congress Presentations
+
+<CodeGroup>
+```bash GET /producciones-cientificas/congresos
+curl -X GET "https://api.example.com/producciones-cientificas/congresos" \
+  -H "Authorization: Bearer {token}"
+```
+</CodeGroup>
+
+**Required Permission:** `PRC-VAL-V`, `PRC-VAL-E`
+
+<ResponseField name="content" type="array">
+  <Expandable title="Congreso object">
+    <ResponseField name="id" type="long">Production ID</ResponseField>
+    <ResponseField name="tituloTrabajo" type="string">Work title</ResponseField>
+    <ResponseField name="nombreCongreso" type="string">Congress name</ResponseField>
+    <ResponseField name="fechaCelebracion" type="date">Event date</ResponseField>
+    <ResponseField name="tipoEvento" type="string">Event type</ResponseField>
+    <ResponseField name="tipoProduccion" type="string">Production type</ResponseField>
+    <ResponseField name="estado" type="object">Validation state</ResponseField>
+  </Expandable>
+</ResponseField>
+
+### List Researcher Congress Presentations
+
+<CodeGroup>
+```bash GET /producciones-cientificas/congresos/investigador
+curl -X GET "https://api.example.com/producciones-cientificas/congresos/investigador" \
+  -H "Authorization: Bearer {token}"
+```
+</CodeGroup>
+
+**Required Permission:** `PRC-VAL-INV-ER`
+
+---
+
+## Obras Artísticas (Artistic Works)
+
+### List Artistic Works
+
+<CodeGroup>
+```bash GET /producciones-cientificas/obras-artisticas
+curl -X GET "https://api.example.com/producciones-cientificas/obras-artisticas" \
+  -H "Authorization: Bearer {token}"
+```
+</CodeGroup>
+
+**Required Permission:** `PRC-VAL-V`, `PRC-VAL-E`
+
+<ResponseField name="content" type="array">
+  <Expandable title="ObraArtistica object">
+    <ResponseField name="id" type="long">Production ID</ResponseField>
+    <ResponseField name="descripcion" type="string">Description</ResponseField>
+    <ResponseField name="fechaInicio" type="date">Start date</ResponseField>
+    <ResponseField name="tipoProduccion" type="string">Production type</ResponseField>
+    <ResponseField name="estado" type="object">Validation state</ResponseField>
+  </Expandable>
+</ResponseField>
+
+### List Researcher Artistic Works
+
+<CodeGroup>
+```bash GET /producciones-cientificas/obras-artisticas/investigador
+curl -X GET "https://api.example.com/producciones-cientificas/obras-artisticas/investigador" \
+  -H "Authorization: Bearer {token}"
+```
+</CodeGroup>
+
+**Required Permission:** `PRC-VAL-INV-ER`
+
+---
+
+## Direcciones de Tesis (Thesis Supervision)
+
+### List Thesis Supervisions
+
+<CodeGroup>
+```bash GET /producciones-cientificas/direcciones-tesis
+curl -X GET "https://api.example.com/producciones-cientificas/direcciones-tesis" \
+  -H "Authorization: Bearer {token}"
+```
+</CodeGroup>
+
+**Required Permission:** `PRC-VAL-V`, `PRC-VAL-E`
+
+<ResponseField name="content" type="array">
+  <Expandable title="DireccionTesis object">
+    <ResponseField name="id" type="long">Production ID</ResponseField>
+    <ResponseField name="tituloTrabajo" type="string">Thesis title</ResponseField>
+    <ResponseField name="fechaDefensa" type="date">Defense date</ResponseField>
+    <ResponseField name="tipoProyecto" type="string">Project type (PhD, Master, etc.)</ResponseField>
+    <ResponseField name="tipoProduccion" type="string">Production type</ResponseField>
+    <ResponseField name="estado" type="object">Validation state</ResponseField>
+  </Expandable>
+</ResponseField>
+
+### List Researcher Thesis Supervisions
+
+<CodeGroup>
+```bash GET /producciones-cientificas/direcciones-tesis/investigador
+curl -X GET "https://api.example.com/producciones-cientificas/direcciones-tesis/investigador" \
+  -H "Authorization: Bearer {token}"
+```
+</CodeGroup>
+
+**Required Permission:** `PRC-VAL-INV-ER`
+
+---
+
+## Actividades (Research Activities)
+
+### List Activities
+
+<CodeGroup>
+```bash GET /producciones-cientificas/actividades
+curl -X GET "https://api.example.com/producciones-cientificas/actividades" \
+  -H "Authorization: Bearer {token}"
+```
+</CodeGroup>
+
+**Required Permission:** `PRC-VAL-V`, `PRC-VAL-E`
+
+<ResponseField name="content" type="array">
+  <Expandable title="Actividad object">
+    <ResponseField name="id" type="long">Production ID</ResponseField>
+    <ResponseField name="titulo" type="string">Activity title</ResponseField>
+    <ResponseField name="fechaInicio" type="date">Start date</ResponseField>
+    <ResponseField name="tipoActividad" type="string">Activity type</ResponseField>
+    <ResponseField name="tipoProduccion" type="string">Production type</ResponseField>
+    <ResponseField name="estado" type="object">Validation state</ResponseField>
+  </Expandable>
+</ResponseField>
+
+### List Researcher Activities
+
+<CodeGroup>
+```bash GET /producciones-cientificas/actividades/investigador
+curl -X GET "https://api.example.com/producciones-cientificas/actividades/investigador" \
+  -H "Authorization: Bearer {token}"
+```
+</CodeGroup>
+
+**Required Permission:** `PRC-VAL-INV-ER`
+
+---
+
+## Production Details
+
+### Get Production by ID
+
+<CodeGroup>
+```bash GET /producciones-cientificas/{id}
+curl -X GET "https://api.example.com/producciones-cientificas/123" \
+  -H "Authorization: Bearer {token}"
+```
+</CodeGroup>
+
+<ParamField path="id" type="long" required>
+  Scientific production identifier
+</ParamField>
+
+### Get Production Authors
+
+<CodeGroup>
+```bash GET /producciones-cientificas/{id}/autores
+curl -X GET "https://api.example.com/producciones-cientificas/123/autores" \
+  -H "Authorization: Bearer {token}"
+```
+</CodeGroup>
+
+Returns authors/contributors of the scientific production.
+
+<ResponseField name="content" type="array">
+  <Expandable title="Autor object">
+    <ResponseField name="id" type="long">Author ID</ResponseField>
+    <ResponseField name="personaRef" type="string">Person reference</ResponseField>
+    <ResponseField name="firma" type="string">Signature/affiliation</ResponseField>
+    <ResponseField name="orden" type="integer">Author order</ResponseField>
+    <ResponseField name="orcidId" type="string">ORCID identifier</ResponseField>
+  </Expandable>
+</ResponseField>
+
+### Get Impact Indices
+
+<CodeGroup>
+```bash GET /producciones-cientificas/{id}/indices-impacto
+curl -X GET "https://api.example.com/producciones-cientificas/123/indices-impacto" \
+  -H "Authorization: Bearer {token}"
+```
+</CodeGroup>
+
+Returns impact factor and citation metrics.
+
+<ResponseField name="content" type="array">
+  <Expandable title="IndiceImpacto object">
+    <ResponseField name="id" type="long">Index ID</ResponseField>
+    <ResponseField name="fuenteImpacto" type="string">Source (JCR, SJR, etc.)</ResponseField>
+    <ResponseField name="indice" type="decimal">Impact factor value</ResponseField>
+    <ResponseField name="ranking" type="string">Journal ranking</ResponseField>
+    <ResponseField name="anio" type="integer">Year</ResponseField>
+  </Expandable>
+</ResponseField>
+
+### Get Related Projects
+
+<CodeGroup>
+```bash GET /producciones-cientificas/{id}/proyectos
+curl -X GET "https://api.example.com/producciones-cientificas/123/proyectos" \
+  -H "Authorization: Bearer {token}"
+```
+</CodeGroup>
+
+Returns research projects related to this production.
+
+### Get Accreditations
+
+<CodeGroup>
+```bash GET /producciones-cientificas/{id}/acreditaciones
+curl -X GET "https://api.example.com/producciones-cientificas/123/acreditaciones" \
+  -H "Authorization: Bearer {token}"
+```
+</CodeGroup>
+
+Returns academic accreditations associated with this production.
+
+### Get Production Fields
+
+<CodeGroup>
+```bash GET /producciones-cientificas/{id}/campos
+curl -X GET "https://api.example.com/producciones-cientificas/123/campos" \
+  -H "Authorization: Bearer {token}"
+```
+</CodeGroup>
+
+Returns custom fields and metadata for the production.
+
+### Get Field Values
+
+<CodeGroup>
+```bash GET /producciones-cientificas/{id}/campos/{campoId}/valores
+curl -X GET "https://api.example.com/producciones-cientificas/123/campos/5/valores" \
+  -H "Authorization: Bearer {token}"
+```
+</CodeGroup>
+
+Returns values for a specific metadata field.
+
+---
+
+## Validation Workflow
+
+### Validate Production
+
+<CodeGroup>
+```bash PATCH /producciones-cientificas/{id}/validar
+curl -X PATCH "https://api.example.com/producciones-cientificas/123/validar" \
+  -H "Authorization: Bearer {token}" \
+  -H "Content-Type: application/json" \
+  -d '{"estado": "VALIDADO"}'
+```
+</CodeGroup>
+
+Validates a scientific production (manager action).
+
+**Required Permission:** `PRC-VAL-E`
+
+### Validate as Researcher
+
+<CodeGroup>
+```bash PATCH /producciones-cientificas/{id}/validar/investigador
+curl -X PATCH "https://api.example.com/producciones-cientificas/123/validar/investigador" \
+  -H "Authorization: Bearer {token}" \
+  -H "Content-Type: application/json" \
+  -d '{"estado": "VALIDADO"}'
+```
+</CodeGroup>
+
+Validates own production (researcher action).
+
+**Required Permission:** `PRC-VAL-INV-ER`
+
+### Reject Production
+
+<CodeGroup>
+```bash PATCH /producciones-cientificas/{id}/rechazar
+curl -X PATCH "https://api.example.com/producciones-cientificas/123/rechazar" \
+  -H "Authorization: Bearer {token}" \
+  -H "Content-Type: application/json" \
+  -d '{"estado": "RECHAZADO", "comentario": "Reason for rejection"}'
+```
+</CodeGroup>
+
+**Required Permission:** `PRC-VAL-E`
+
+### Check if Modifiable by Researcher
+
+<CodeGroup>
+```bash HEAD /producciones-cientificas/{id}/modificable/investigador
+curl -I "https://api.example.com/producciones-cientificas/123/modificable/investigador" \
+  -H "Authorization: Bearer {token}"
+```
+</CodeGroup>
+
+Returns HTTP 200 if the researcher can modify the production, 204 otherwise.
+
+---
+
+## Common Patterns
+
+### Validation States
+
+Productions can be in the following states:
+- `PENDIENTE` - Pending validation
+- `VALIDADO` - Validated
+- `RECHAZADO` - Rejected
+
+### Filtering Examples
+
+```
+q=estado.estado==VALIDADO
+q=fechaPublicacion=ge='2023-01-01'
+q=tipoProduccion=='ARTICULO'
+q=epigrafeCVN=like='060.010%'
+```
+
+### Pagination
+
+All list endpoints support:
+
+<ParamField query="page" type="integer" default="0">Page number</ParamField>
+<ParamField query="size" type="integer" default="10">Page size</ParamField>
+<ParamField query="sort" type="string">Sort specification</ParamField>

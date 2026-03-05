@@ -1,0 +1,390 @@
+---
+title: 'ETI Service API'
+description: 'Ethics Committee Management - Comités de Ética de Investigación'
+icon: 'shield-check'
+---
+
+## Overview
+
+The ETI (Ética de la Investigación) service manages ethics review processes for research projects:
+
+- **Comités** - Ethics committees
+- **Memorias** - Ethics reports and submissions
+- **Evaluaciones** - Ethics evaluations and reviews
+- **Peticiones de Evaluación** - Evaluation requests
+
+Base URL: `/comites`, `/memorias`, `/evaluaciones`
+
+## Authentication
+
+All endpoints require JWT authentication with ETI-specific permissions:
+- `ETI-MEM-*` - Memoria (report) permissions
+- `ETI-EVC-*` - Evaluacion permissions
+- `ETI-ACT-*` - Acta (minutes) permissions
+
+---
+
+## Comités (Ethics Committees)
+
+### List Committees
+
+<CodeGroup>
+```bash GET /comites
+curl -X GET "https://api.example.com/comites" \
+  -H "Authorization: Bearer {token}"
+```
+</CodeGroup>
+
+<ParamField query="q" type="string">
+  RSQL filter query
+</ParamField>
+
+<ResponseField name="content" type="array">
+  Array of Comite objects
+  <Expandable title="Comite object">
+    <ResponseField name="id" type="long">Committee identifier</ResponseField>
+    <ResponseField name="comite" type="string">Committee code (e.g., "CEISH", "CEEA")</ResponseField>
+    <ResponseField name="nombre" type="string">Committee name</ResponseField>
+    <ResponseField name="activo" type="boolean">Active status</ResponseField>
+    <ResponseField name="formulario" type="object">Associated form template</ResponseField>
+  </Expandable>
+</ResponseField>
+
+### Get Committee by ID
+
+<CodeGroup>
+```bash GET /comites/{id}
+curl -X GET "https://api.example.com/comites/1" \
+  -H "Authorization: Bearer {token}"
+```
+</CodeGroup>
+
+<ParamField path="id" type="long" required>
+  Committee identifier
+</ParamField>
+
+### Get Committee Memorias
+
+<CodeGroup>
+```bash GET /comites/{idComite}/memorias-peticion-evaluacion/{idPeticionEvaluacion}
+curl -X GET "https://api.example.com/comites/1/memorias-peticion-evaluacion/123" \
+  -H "Authorization: Bearer {token}"
+```
+</CodeGroup>
+
+Returns modifiable memorias for a specific evaluation request in a committee.
+
+**Required Permission:** `ETI-PEV-INV-C`, `ETI-PEV-INV-ER`
+
+---
+
+## Memorias (Ethics Reports)
+
+### List Memorias
+
+<CodeGroup>
+```bash GET /memorias
+curl -X GET "https://api.example.com/memorias?q=estadoActual.id==1" \
+  -H "Authorization: Bearer {token}"
+```
+</CodeGroup>
+
+<ParamField query="q" type="string">
+  RSQL filter query
+</ParamField>
+
+<ResponseField name="content" type="array">
+  Array of Memoria objects
+  <Expandable title="Memoria object">
+    <ResponseField name="id" type="long">Memoria identifier</ResponseField>
+    <ResponseField name="numReferencia" type="string">Reference number</ResponseField>
+    <ResponseField name="titulo" type="string">Title</ResponseField>
+    <ResponseField name="comite" type="object">Assigned committee</ResponseField>
+    <ResponseField name="estadoActual" type="object">Current state</ResponseField>
+    <ResponseField name="retrospectiva" type="object">Retrospective data</ResponseField>
+    <ResponseField name="peticionEvaluacion" type="object">Evaluation request</ResponseField>
+    <ResponseField name="activo" type="boolean">Active status</ResponseField>
+  </Expandable>
+</ResponseField>
+
+### Get Memoria by ID
+
+<CodeGroup>
+```bash GET /memorias/{id}
+curl -X GET "https://api.example.com/memorias/123" \
+  -H "Authorization: Bearer {token}"
+```
+</CodeGroup>
+
+**Required Permission:** `ETI-MEM-INV-ER`, `ETI-MEM-V`
+
+### Create Memoria
+
+<CodeGroup>
+```bash POST /memorias
+curl -X POST "https://api.example.com/memorias" \
+  -H "Authorization: Bearer {token}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "titulo": "Research Ethics Assessment",
+    "comite": {"id": 1},
+    "peticionEvaluacion": {"id": 456},
+    "requiereRetrospectiva": false
+  }'
+```
+</CodeGroup>
+
+**Required Permission:** `ETI-MEM-INV-CR`, `ETI-MEM-INV-ER`
+
+### Update Memoria
+
+<CodeGroup>
+```bash PUT /memorias/{id}
+curl -X PUT "https://api.example.com/memorias/123" \
+  -H "Authorization: Bearer {token}" \
+  -H "Content-Type: application/json" \
+  -d '{"titulo": "Updated Title"}'
+```
+</CodeGroup>
+
+**Required Permission:** `ETI-MEM-INV-ER`
+
+### Delete Memoria
+
+<CodeGroup>
+```bash DELETE /memorias/{id}
+curl -X DELETE "https://api.example.com/memorias/123" \
+  -H "Authorization: Bearer {token}"
+```
+</CodeGroup>
+
+Deactivates (soft delete) the memoria.
+
+**Required Permission:** `ETI-MEM-INV-BR`
+
+### Create Modified Memoria
+
+<CodeGroup>
+```bash POST /memorias/{id}/crear-memoria-modificada
+curl -X POST "https://api.example.com/memorias/123/crear-memoria-modificada" \
+  -H "Authorization: Bearer {token}" \
+  -H "Content-Type: application/json" \
+  -d '{"titulo": "Modified Version"}'
+```
+</CodeGroup>
+
+Creates a modified version based on an existing memoria.
+
+### Get Memoria Evaluations
+
+<CodeGroup>
+```bash GET /memorias/{id}/evaluaciones-anteriores/{idEvaluacion}/{idTipoComentario}
+curl -X GET "https://api.example.com/memorias/123/evaluaciones-anteriores/789/1" \
+  -H "Authorization: Bearer {token}"
+```
+</CodeGroup>
+
+Returns previous evaluations for a memoria.
+
+### Get Memoria Documents
+
+<CodeGroup>
+```bash GET /memorias/{id}/documentacion-inicial
+curl -X GET "https://api.example.com/memorias/123/documentacion-inicial" \
+  -H "Authorization: Bearer {token}"
+```
+</CodeGroup>
+
+Returns initial documentation required for the memoria.
+
+### Get Current State
+
+<CodeGroup>
+```bash GET /memorias/{id}/estado-actual
+curl -X GET "https://api.example.com/memorias/123/estado-actual" \
+  -H "Authorization: Bearer {token}"
+```
+</CodeGroup>
+
+Returns the current state of the memoria.
+
+---
+
+## Evaluaciones (Evaluations)
+
+### List Evaluations
+
+<CodeGroup>
+```bash GET /evaluaciones
+curl -X GET "https://api.example.com/evaluaciones?q=activo==true" \
+  -H "Authorization: Bearer {token}"
+```
+</CodeGroup>
+
+<ResponseField name="content" type="array">
+  Array of Evaluacion objects
+  <Expandable title="Evaluacion object">
+    <ResponseField name="id" type="long">Evaluation identifier</ResponseField>
+    <ResponseField name="memoria" type="object">Related memoria</ResponseField>
+    <ResponseField name="convocatoriaReunion" type="object">Committee meeting</ResponseField>
+    <ResponseField name="tipoEvaluacion" type="object">Evaluation type</ResponseField>
+    <ResponseField name="dictamen" type="object">Decision/verdict</ResponseField>
+    <ResponseField name="esRevMinima" type="boolean">Is minimal review</ResponseField>
+    <ResponseField name="version" type="integer">Version number</ResponseField>
+    <ResponseField name="activo" type="boolean">Active status</ResponseField>
+  </Expandable>
+</ResponseField>
+
+### Get Evaluation by ID
+
+<CodeGroup>
+```bash GET /evaluaciones/{id}
+curl -X GET "https://api.example.com/evaluaciones/789" \
+  -H "Authorization: Bearer {token}"
+```
+</CodeGroup>
+
+**Required Permission:** `ETI-EVC-V`, `ETI-EVC-VR`, `ETI-EVC-INV-VR`, etc.
+
+### Create Evaluation
+
+<CodeGroup>
+```bash POST /evaluaciones
+curl -X POST "https://api.example.com/evaluaciones" \
+  -H "Authorization: Bearer {token}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "memoria": {"id": 123},
+    "convocatoriaReunion": {"id": 456},
+    "tipoEvaluacion": {"id": 1},
+    "esRevMinima": false
+  }'
+```
+</CodeGroup>
+
+**Required Permission:** `ETI-EVC-C`, `ETI-EVC-E`, `ETI-CNV-C`, `ETI-CNV-E`
+
+### Update Evaluation
+
+<CodeGroup>
+```bash PUT /evaluaciones/{id}
+curl -X PUT "https://api.example.com/evaluaciones/789" \
+  -H "Authorization: Bearer {token}" \
+  -H "Content-Type: application/json" \
+  -d '{"dictamen": {"id": 2}}'
+```
+</CodeGroup>
+
+**Required Permission:** `ETI-EVC-EVAL`, `ETI-CNV-E`
+
+### Delete Evaluation
+
+<CodeGroup>
+```bash DELETE /evaluaciones/{id}
+curl -X DELETE "https://api.example.com/evaluaciones/789" \
+  -H "Authorization: Bearer {token}"
+```
+</CodeGroup>
+
+Deactivates the evaluation.
+
+**Required Permission:** `ETI-CNV-E`
+
+### Get Evaluations by Meeting
+
+<CodeGroup>
+```bash GET /evaluaciones/convocatoriareunion/{id}
+curl -X GET "https://api.example.com/evaluaciones/convocatoriareunion/456" \
+  -H "Authorization: Bearer {token}"
+```
+</CodeGroup>
+
+Returns all active evaluations for a committee meeting.
+
+**Required Permission:** `ETI-ACT-C`, `ETI-ACT-E`, `ETI-ACT-INV-ER`, `ETI-ACT-ER`
+
+### Get Evaluation Comments
+
+#### Get Evaluator Comments
+
+<CodeGroup>
+```bash GET /evaluaciones/{id}/comentarios-evaluador
+curl -X GET "https://api.example.com/evaluaciones/789/comentarios-evaluador" \
+  -H "Authorization: Bearer {token}"
+```
+</CodeGroup>
+
+Returns comments from evaluators for this evaluation.
+
+**Required Permission:** `ETI-EVC-EVAL`, `ETI-EVC-EVALR`, `ETI-EVC-INV-EVALR`
+
+#### Get Manager Comments
+
+<CodeGroup>
+```bash GET /evaluaciones/{id}/comentarios-gestor
+curl -X GET "https://api.example.com/evaluaciones/789/comentarios-gestor" \
+  -H "Authorization: Bearer {token}"
+```
+</CodeGroup>
+
+Returns comments from managers for this evaluation.
+
+**Required Permission:** `ETI-EVC-EVAL`, `ETI-PEV-INV-ER`, `ETI-EVC-EVALR`
+
+---
+
+## Common Patterns
+
+### Pagination
+
+All list endpoints support pagination:
+
+<ParamField query="page" type="integer" default="0">
+  Page number (zero-based)
+</ParamField>
+
+<ParamField query="size" type="integer" default="10">
+  Number of items per page
+</ParamField>
+
+<ParamField query="sort" type="string">
+  Sort specification (e.g., `numReferencia,desc`)
+</ParamField>
+
+### Filtering
+
+Use RSQL syntax in the `q` parameter:
+
+```
+q=activo==true;comite.id==1
+q=estadoActual.nombre==COMPLETADA
+q=titulo=like='Research*'
+```
+
+### Response Format
+
+Paginated responses include:
+
+<ResponseField name="content" type="array">
+  Array of result objects
+</ResponseField>
+
+<ResponseField name="pageable" type="object">
+  Pagination metadata
+</ResponseField>
+
+<ResponseField name="totalElements" type="long">
+  Total number of elements
+</ResponseField>
+
+<ResponseField name="totalPages" type="integer">
+  Total number of pages
+</ResponseField>
+
+<ResponseField name="size" type="integer">
+  Page size
+</ResponseField>
+
+<ResponseField name="number" type="integer">
+  Current page number
+</ResponseField>
